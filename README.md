@@ -1,36 +1,25 @@
-# Your Package Name
+# Taiko DAO CLI Tool
 
-Brief description of your CLI tool.
+A lightweight CLI tool for interacting with the Taiko DAO, built with TypeScript and Node.js.
 
 ## Installation
 
 ```bash
-npm install -g your-package-name
+git clone https://github.com/taikoxyz/dao-cli taiko-dao-cli
+cd taiko-dao-cli
+pnpm install
+```
+## Build
+```bash
+pnpm build
 ```
 
 ## Usage
 
 ```bash
-your-command-name
-```
-
-## Development
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/your-repo-name.git
-cd your-repo-name
-
-# Install dependencies
-pnpm install
-
-# Build the project
-pnpm run build
-
-# Run locally
 pnpm start
 ```
 
 ## License
 
-MIT
+???
