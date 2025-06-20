@@ -5,6 +5,7 @@
     "rpc": "https://holesky.drpc.org",
     "explorer": "https://holesky.etherscan.io/"
 },
+"subgraph": "https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn",
 "contracts": {
     "DAO": "0x3b7FFC62241647369d28881479b907DFF6e71882",
   "VotingToken": "0x6490E12d480549D333499236fF2Ba6676C296011",

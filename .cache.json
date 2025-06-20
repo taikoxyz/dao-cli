@@ -1,0 +1,37 @@
+{
+  "lastUsedConfig": {
+    "network": "holesky",
+    "chainId": 17000,
+    "urls": {
+      "rpc": "https://holesky.drpc.org",
+      "explorer": "https://holesky.etherscan.io/"
+    },
+    "subgraph": "https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn",
+    "contracts": {
+      "DAO": "0x3b7FFC62241647369d28881479b907DFF6e71882",
+      "VotingToken": "0x6490E12d480549D333499236fF2Ba6676C296011",
+      "TaikoBridge": "0xA098b76a3Dd499D3F6D58D8AcCaFC8efBFd06807",
+      "MultisigPlugin": "0xCBD72Ba85bccF95BD39AA7A1bdD3F2213C642cd4",
+      "EmergencyMultisigPlugin": "0x53b6A327aFaf16F842Ce46fF18019418dd629bE7",
+      "OptimisticTokenVotingPlugin": "0xB1807C3cE200016b5bdAFe0B0df0A91853D24Cb3",
+      "SignerList": "0xE919a2e4FE5b029d3C835622dfaF1d09FdF2E4C8",
+      "EncryptionRegistry": "0xb1CB4ae1f00204Bc752a717f1Bf6d4cDA8609099",
+      "DelegationWall": "0x2994078a949D679d62744D136f295aba4Bc42421"
+    }
+  },
+  "signerList": [
+    {
+      "owner": "0x4100a9B680B1Be1F10Cb8b5a57fE59eA77A8184e",
+      "signer": "0x4100a9B680B1Be1F10Cb8b5a57fE59eA77A8184e"
+    }
+  ],
+  "ipfs:bafkreiahplm3xj6yokb6o2iuanz2ur7sttahduqrmmd2wjcmdreihv5pqe": {
+    "encrypted": {
+      "metadata": "u_dKjEH6QmajR6Q7t501nW9Lv3Ph91I9pRIuh33vQW-jT1wUcn8x05JrbPvKdL5spDtfrVrVph6jDoe2xVn5ilUgS2uba4olwsTcoJynZcD46JcNc7dDxjr9iDiggJdSuLkz1EV1tMocSMaonZt1YM80eOsgDtgoTe9RyJAHJCF1kdSVQrlD0N_mYef3n87yBt-Sydg0D5K6cnX6X1rlSl0rB0NVQ994Fq5_a2BCbwFZ55HfSf0LJtplnD3MVcc9KRat",
+      "actions": "mF4TtyWrpeRqgGgwJMxyaWV-VUEAPzbIYhkSkCazRav-5J5_Q7DPZyqmat_crFnEqNhHRLWE6Iu7V1-qsA-2QOzfE_xIsU9WXjT-4UMiUuBtj8hkuNsmvDPOCyQ1FqobDouKN9Cz6HY",
+      "symmetricKeys": [
+        "0x94e0e2f4efa16dea8ad9b7ae42b6d8f0ac7d1b4e7ab4324ee5979f9981eda8592e938e96179680bbe2267bbc8ac2dc4bdb0b68b79428f9f018e972b57f541972caa1cb5545edac0c9ef826b07c6d1362"
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ export interface INetworkConfig {
     rpc: string;
     explorer: string;
   };
+  subgraph: string;
   contracts: {
     DAO: Address;
     VotingToken: Address;
