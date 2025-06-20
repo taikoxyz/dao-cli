@@ -12,11 +12,9 @@ export default async function getIpfsFile<T>(hash: string): Promise<T | undefine
         return cache.get(`ipfs:${hash}`) as T
     }
     try {
-        console.log('Axios: fetching', {IPFS_GATEWAY, hash})
         // artifical wait to not overload the IPFS gateway
         await wait(500)
         const url = `${IPFS_GATEWAY}/${hash}`
-        console.log(`Fetching IPFS file from ${url}`);
     const res = await axios.get(url,{
          timeout: 10000, // 10 second timeout
       headers: {

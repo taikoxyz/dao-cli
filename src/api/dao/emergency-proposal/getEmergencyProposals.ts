@@ -19,7 +19,7 @@ export default async function getEmergencyProposals(
         args: []
     })
 
-    console.log(`Emergency proposal count: ${res}`);
+    console.info(`Emergency proposal count: ${res}`);
     const promises = []
     for (let i = 0; i < Number(res); i++) {
     promises.push(getEmergencyProposal(i, config));

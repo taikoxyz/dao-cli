@@ -9,13 +9,8 @@ export default async function interactWithContractPrompt(
   address: Address,
   abi: any[],
 ) {
-  console.log(`Interacting with contract [${name}]: ${address}`);
-
   const readActions = abi.filter((item) => item.type === 'function' && item.stateMutability === 'view');
   const writeActions = abi.filter((item) => item.type === 'function' && item.stateMutability !== 'view');
-
-  console.log(`Available read actions: ${readActions.length}`);
-  console.log(`Available write actions: ${writeActions.length}`);
 
   const methodName = await select({
     message: `Select the method you want to call on [${name}]: ${address}`,
@@ -51,14 +46,12 @@ export default async function interactWithContractPrompt(
 
   if (isRead) {
     const client = getPublicClient(config);
-    console.log(`Reading from contract [${name}]: ${address}, method: ${methodName}`);
     const res = await client.readContract({
       address: address,
       abi: abi as Abi,
       functionName: methodName,
     });
 
-    console.log(`> Result:`, res);
     return res;
   }
 
@@ -66,5 +59,4 @@ export default async function interactWithContractPrompt(
     console.error(`⚠️ Read operations not supported yet. Please interact via ${config.urls.explorer} instead.`);
     return;
   }
-  console.log({ methodName, isRead, isWrite });
 }

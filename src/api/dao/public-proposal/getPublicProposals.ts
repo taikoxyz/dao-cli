@@ -1,26 +1,25 @@
 import { ABIs } from "../../../abi";
 import { INetworkConfig } from "../../../types/network.type";
-import { IProposalMetadata } from "../../../types/proposal.type";
+import { EmergencyProposal, IProposalMetadata } from "../../../types/proposal.type";
 import { getPublicClient } from "../../viem";
-import getStandardProposal from "./getStandardProposal";
+import getPublicProposal from "./getPublicProposal";
 
-export default async function getStandardProposals(
-
+export default async function getPublicProposals(
     config: INetworkConfig
 ){
     try {
     const client = getPublicClient(config)
     const res = await client.readContract({
-        abi: ABIs.MultisigPlugin,
-        address: config.contracts.MultisigPlugin,
+        abi: ABIs.OptimisticTokenVotingPlugin,
+        address: config.contracts.OptimisticTokenVotingPlugin,
         functionName: 'proposalCount',
         args: []
     })
 
-    console.info(`Standard proposal count: ${res}`);
+    console.info(`Public proposal count: ${res}`);
     const promises = []
     for (let i = 0; i < Number(res); i++) {
-    promises.push(getStandardProposal(i, config));
+    promises.push(getPublicProposal(i, config));
 }
 
 const proposals =await Promise.all(promises)
