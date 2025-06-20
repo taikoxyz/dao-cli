@@ -9,7 +9,7 @@ import getEmergencyProposals from '../api/dao/emergency-proposal/getEmergencyPro
 import { decrypt } from '../api/dao/security-council/getDecryptionKey';
 
 export async function selectMainMenuPrompt(config: INetworkConfig, walletClient: WalletClient): Promise<void> {
-  const address =  walletClient.account?.address as `0x${string}`;
+  const address = walletClient.account?.address as `0x${string}`;
   const selected = await select({
     message: 'Welcome to the DAO CLI. What module would you like to use?',
     choices: [
@@ -59,21 +59,20 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
         console.info(proposals[proposalSelect]);
       } else if (nextAction === 'View Emergency Proposals') {
         const proposals = (await getEmergencyProposals(config)) || [];
-        const decryptedProposals = []
-        for (const proposal of proposals){
-        const decrypted = await decrypt(config,( proposal as any))
-        decryptedProposals.push(decrypted);
+        const decryptedProposals = [];
+        for (const proposal of proposals) {
+          const decrypted = await decrypt(config, proposal as any);
+          decryptedProposals.push(decrypted);
         }
 
-         const proposalSelect = await select({
+        const proposalSelect = await select({
           message: 'Select a standard proposal to view details:',
           choices: decryptedProposals.map((proposal, index) => ({
             name: `Proposal #${index + 1}: ${proposal?.title}`,
             value: index,
           })),
         });
-                console.info(decryptedProposals[proposalSelect]);
-
+        console.info(decryptedProposals[proposalSelect]);
       } else {
         console.error(`Invalid action selected: ${nextAction}`);
       }

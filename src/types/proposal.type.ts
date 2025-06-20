@@ -1,4 +1,4 @@
-import { Hex } from "viem";
+import { Hex } from 'viem';
 
 export interface IProposalMetadata {
   id: number;
@@ -30,30 +30,30 @@ export type ProposalMetadata = {
 
 export const RawActionListAbi = [
   {
-    name: "_actions",
-    type: "tuple[]",
-    internalType: "struct IDAO.Action[]",
+    name: '_actions',
+    type: 'tuple[]',
+    internalType: 'struct IDAO.Action[]',
     components: [
       {
-        name: "to",
-        type: "address",
-        internalType: "address",
+        name: 'to',
+        type: 'address',
+        internalType: 'address',
       },
       {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
+        name: 'value',
+        type: 'uint256',
+        internalType: 'uint256',
       },
       {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
+        name: 'data',
+        type: 'bytes',
+        internalType: 'bytes',
       },
     ],
   },
 ] as const;
 
-import { Address } from "viem";
+import { Address } from 'viem';
 
 export type ProposalInputs = {
   proposalId: bigint;
@@ -80,7 +80,6 @@ export type RawAction = {
   value: bigint;
   data: Hex;
 };
-
 
 export type EmergencyProposal = {
   // active: boolean;
