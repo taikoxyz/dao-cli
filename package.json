@@ -19,11 +19,17 @@
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
     "@inquirer/prompts": "^7.5.3",
+    "axios": "^1.10.0",
+    "dotenv": "^16.5.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "inquirer": "^12.6.3",
+    "libsodium-wrappers": "^0.7.15",
     "viem": "^2.30.6"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.8",
+    "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "^22.15.29",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",

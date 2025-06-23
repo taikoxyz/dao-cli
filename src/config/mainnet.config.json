@@ -5,6 +5,7 @@
     "rpc": "https://eth.llamarpc.com",
     "explorer": "https://etherscan.io/"
 },
+"subgraph": "https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao/mainnet/gn",
 "contracts": {
     "DAO": "0x9CDf589C941ee81D75F34d3755671d614f7cf261",
   "VotingToken": "0x10dea67478c5F8C5E2D90e5E9B26dBe60c54d800",

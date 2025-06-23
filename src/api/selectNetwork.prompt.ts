@@ -8,12 +8,12 @@ export async function selectNetworkPrompt(): Promise<INetworkConfig> {
     message: 'Select the network you want to use',
     choices: [
       {
-        name: 'Holesky',
-        value: 'holesky',
-      },
-      {
         name: 'Mainnet',
         value: 'mainnet',
+      },
+      {
+        name: 'Holesky',
+        value: 'holesky',
       },
     ],
   });
