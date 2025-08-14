@@ -1,6 +1,7 @@
 {
 "network": "mainnet",
 "chainId": 1,
+"ipfsGateway": "https://dweb.link/ipfs",
 "urls": {
     "rpc": "https://eth.llamarpc.com",
     "explorer": "https://etherscan.io/"

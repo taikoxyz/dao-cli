@@ -1,8 +1,17 @@
 const originalStringify = JSON.stringify;
 
+type JsonValue = string | number | boolean | null | bigint | JsonObject | JsonArray;
+interface JsonObject {
+  [key: string]: JsonValue;
+}
+interface JsonArray extends Array<JsonValue> {}
+
+// eslint-disable-next-line no-unused-vars
+type Replacer = ((key: string, value: unknown) => unknown) | (string | number)[] | null;
+
 // Create a safe replacement
-JSON.stringify = function (value: any, replacer?: any, space?: string | number): string {
-  const bigintReplacer = function (this: any, key: string, val: any) {
+JSON.stringify = function (value: JsonValue, replacer?: Replacer, space?: string | number): string {
+  const bigintReplacer = function (this: unknown, key: string, val: unknown) {
     // Convert BigInt to string
     if (typeof val === 'bigint') {
       return val.toString();
