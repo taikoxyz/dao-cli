@@ -7,6 +7,7 @@ export default async function interactWithContractPrompt(
   config: INetworkConfig,
   name: string,
   address: Address,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abi: any[],
 ) {
   const readActions = abi.filter((item) => item.type === 'function' && item.stateMutability === 'view');
@@ -16,11 +17,11 @@ export default async function interactWithContractPrompt(
     message: `Select the method you want to call on [${name}]: ${address}`,
     choices: [
       ...readActions.map((action) => ({
-        name: `${action.name} (Read) [${action.inputs.map((i: any) => i.name).join(', ')}]`,
+        name: `${action.name} (Read) [${action.inputs.map((i: { name: string }) => i.name).join(', ')}]`,
         value: action.name,
       })),
       ...writeActions.map((action) => ({
-        name: `${action.name} (Write) [${action.inputs.map((i: any) => i.name).join(', ')}]`,
+        name: `${action.name} (Write) [${action.inputs.map((i: { name: string }) => i.name).join(', ')}]`,
         value: action.name,
       })),
     ].sort((a, b) => a.name.localeCompare(b.name)),
@@ -47,7 +48,7 @@ export default async function interactWithContractPrompt(
   if (isRead) {
     const client = getPublicClient(config);
     const res = await client.readContract({
-      address: address,
+      address,
       abi: abi as Abi,
       functionName: methodName,
     });

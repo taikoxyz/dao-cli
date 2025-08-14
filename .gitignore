@@ -5,3 +5,5 @@ dist
 !.env.example
 .cache
 .cache.json
+coverage
+.claude

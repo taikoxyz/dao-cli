@@ -1,4 +1,3 @@
-import { Abi } from 'viem';
 import { default as Dao } from './DAO.sol/DAO.json';
 import { default as DelegationWall } from './DelegationWall.sol/DelegationWall.json';
 import { default as EmergencyMultisig } from './EmergencyMultisig.sol/EmergencyMultisig.json';
@@ -7,6 +6,8 @@ import { default as Multisig } from './Multisig.sol/Multisig.json';
 import { default as OptimisticTokenVotingPlugin } from './OptimisticTokenVotingPlugin.sol/OptimisticTokenVotingPlugin.json';
 import { default as SignerList } from './SignerList.sol/SignerList.json';
 
+// Using unknown[] for ABI type since JSON imports are untyped
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ABIs: Record<string, any[]> = {
   DAO: Dao.abi,
   DelegationWall: DelegationWall.abi,

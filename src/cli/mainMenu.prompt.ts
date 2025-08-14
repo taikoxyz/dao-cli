@@ -3,11 +3,10 @@ import { INetworkConfig } from '../types/network.type';
 import getSecurityCouncilMembers from '../api/dao/security-council/getSecurityCouncilMembers';
 import isSecurityCouncilMember from '../api/dao/security-council/isAppointedAgent';
 import { isAddressEqual, WalletClient } from 'viem';
-import getStandardProposal from '../api/dao/standard-proposal/getStandardProposal';
 import getStandardProposals from '../api/dao/standard-proposal/getStandardProposals';
 import getEmergencyProposals from '../api/dao/emergency-proposal/getEmergencyProposals';
-import { decrypt } from '../api/dao/security-council/getDecryptionKey';
 import getPublicProposals from '../api/dao/public-proposal/getPublicProposals';
+import getDelegates, { getDelegateCount, getDelegate } from '../api/dao/delegates/getDelegates';
 import { ABIs } from '../abi';
 import { getPublicClient } from '../api/viem';
 
@@ -35,7 +34,6 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
   });
 
   if (selected === 'Public Stage Proposals') {
-    console.info('To Do: Fetch the list of public stage proposals');
     const proposals = (await getPublicProposals(config)) || [];
     const proposalSelect = await select({
       message: 'Select a public stage proposal to view details:',
@@ -75,20 +73,15 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
         console.info(proposals[proposalSelect]);
       } else if (nextAction === 'View Emergency Proposals') {
         const proposals = (await getEmergencyProposals(config)) || [];
-        const decryptedProposals = [];
-        for (const proposal of proposals) {
-          const decrypted = await decrypt(config, proposal as any);
-          decryptedProposals.push(decrypted);
-        }
 
         const proposalSelect = await select({
-          message: 'Select a standard proposal to view details:',
-          choices: decryptedProposals.map((proposal, index) => ({
+          message: 'Select an emergency proposal to view details:',
+          choices: proposals.map((proposal, index) => ({
             name: `Proposal #${index + 1}: ${proposal?.title}`,
             value: index,
           })),
         });
-        console.info(decryptedProposals[proposalSelect]);
+        console.info(proposals[proposalSelect]);
       } else {
         console.error(`Invalid action selected: ${nextAction}`);
       }
@@ -98,7 +91,56 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
   }
 
   if (selected === 'Delegates') {
-    console.info('To Do: Fetch the list of delegates');
+    console.info('Fetching delegates from DelegationWall contract...');
+
+    const delegateCount = await getDelegateCount(config);
+    console.info(`\nTotal registered delegates: ${delegateCount}`);
+
+    const delegates = await getDelegates(config);
+
+    if (delegates.length === 0) {
+      console.info('No delegates have registered yet.');
+    } else {
+      const delegateSelect = await select({
+        message: 'Select a delegate to view details:',
+        choices: delegates.map((delegate) => {
+          // Build display name with identifier and full address
+          const identifier = delegate.identifier || 'Unnamed Delegate';
+          const displayName = `${identifier} - ${delegate.address}`;
+          return {
+            name: displayName,
+            value: delegate.address,
+          };
+        }),
+      });
+
+      // Fetch full details including voting power for selected delegate
+      console.info('\nFetching delegate details and voting power...');
+      const fullProfile = await getDelegate(delegateSelect, config, true);
+
+      if (fullProfile) {
+        console.info('\n--- Delegate Profile ---');
+        console.info(`Identifier: ${fullProfile.identifier || 'Not specified'}`);
+        console.info(`Address: ${fullProfile.address}`);
+        console.info(`Content URL: ${fullProfile.contentUrl}`);
+
+        // Display voting power
+        if (fullProfile.votingPower !== undefined) {
+          const votingPowerFormatted = (Number(fullProfile.votingPower) / 1e18).toFixed(4);
+          const tokenBalanceFormatted = (Number(fullProfile.tokenBalance || 0n) / 1e18).toFixed(4);
+          console.info(`\n--- Voting Power ---`);
+          console.info(`Total Voting Power: ${votingPowerFormatted} votes`);
+          console.info(`Token Balance: ${tokenBalanceFormatted} tokens`);
+        }
+
+        if (fullProfile.metadata) {
+          console.info('\n--- Full Metadata ---');
+          console.info(JSON.stringify(fullProfile.metadata, null, 2));
+        }
+      } else {
+        console.error('Failed to fetch delegate details.');
+      }
+    }
   }
 
   if (selected === 'Read Bare Contracts') {
@@ -117,7 +159,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
       choices: ABIs[contractName as keyof typeof ABIs]
         .filter((item) => item.type === 'function' && item.stateMutability === 'view')
         .map((item) => ({
-          name: `${item.name} (${item.inputs.map((i: any) => i.name).join(', ')})`,
+          name: `${item.name} (${item.inputs.map((i: { name: string }) => i.name).join(', ')})`,
           value: item.name,
         })),
     });

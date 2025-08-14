@@ -1,4 +1,4 @@
-import { Hex } from 'viem';
+import { Hex, Address } from 'viem';
 
 export interface IProposalMetadata {
   id: number;
@@ -52,8 +52,6 @@ export const RawActionListAbi = [
     ],
   },
 ] as const;
-
-import { Address } from 'viem';
 
 export type ProposalInputs = {
   proposalId: bigint;
