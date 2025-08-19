@@ -37,7 +37,7 @@ async function tryFetchFromGateway<T>(gateway: string, hash: string): Promise<T 
   }
 }
 
-export default async function getIpfsFile<T>(hash: string): Promise<T | undefined> {
+export default async function getIpfsFile<T>(hash: string, exitOnError: boolean = true): Promise<T | undefined> {
   const inCache = await cache.has(`ipfs:${hash}`);
   if (inCache) {
     console.info(`Using cached IPFS file for hash ${hash}`);
@@ -60,6 +60,20 @@ export default async function getIpfsFile<T>(hash: string): Promise<T | undefine
   
   console.error(`Failed to fetch IPFS file with hash ${hash} from all gateways`);
   console.error(`Tried gateways: ${gateways.join(', ')}`);
-  console.error(`\nYou can set a custom IPFS gateway by setting the IPFS_GATEWAY environment variable`);
-  process.exit(1);
+  
+  if (exitOnError) {
+    console.error(`\nYou can set a custom IPFS gateway by setting the IPFS_GATEWAY environment variable`);
+    process.exit(1);
+  } else {
+    console.warn(`Skipping IPFS file ${hash} - unable to fetch from any gateway`);
+    return undefined;
+  }
+}
+
+/**
+ * Fetch IPFS file with graceful failure handling
+ * This version will not exit on error and is suitable for batch operations
+ */
+export async function getIpfsFileSafe<T>(hash: string): Promise<T | undefined> {
+  return getIpfsFile<T>(hash, false);
 }

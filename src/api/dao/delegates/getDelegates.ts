@@ -2,7 +2,7 @@ import { Address, hexToString, parseAbi } from 'viem';
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
-import getIpfsFile from '../../ipfs/getIpfsFile';
+import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
 import { cache } from '../../cache';
 
 // ERC20Votes ABI for voting power
@@ -80,7 +80,10 @@ export default async function getDelegates(config: INetworkConfig): Promise<Dele
         if (contentUrl && contentUrl.startsWith('ipfs://')) {
           try {
             const ipfsHash = contentUrl.replace('ipfs://', '');
-            const metadata = await getIpfsFile(ipfsHash);
+            const metadata = await getIpfsFileSafe(ipfsHash);
+            if (!metadata) {
+              console.warn(`Could not fetch metadata for delegate ${profile.address}, continuing without it`);
+            }
             profile.metadata = metadata;
             // Extract identifier from metadata if available - check 'identifier' field first
             if (metadata && typeof metadata === 'object') {
@@ -150,7 +153,10 @@ export async function getDelegate(
     if (contentUrl.startsWith('ipfs://')) {
       try {
         const ipfsHash = contentUrl.replace('ipfs://', '');
-        const metadata = await getIpfsFile(ipfsHash);
+        const metadata = await getIpfsFileSafe(ipfsHash);
+        if (!metadata) {
+          console.warn(`Could not fetch metadata for delegate ${address}, continuing without it`);
+        }
         profile.metadata = metadata;
         // Extract identifier from metadata if available - check 'identifier' field first
         if (metadata && typeof metadata === 'object') {

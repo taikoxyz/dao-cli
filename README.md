@@ -32,6 +32,25 @@ cp .env.example .env
 
 Add your private key to the `.env` file. This requirement will be replaced with a more secure wallet connectivity solution in future releases.
 
+### IPFS Configuration for Proposals
+
+To create proposals, you must configure IPFS pinning using Pinata to store proposal metadata:
+
+1. Sign up for a free account at [pinata.cloud](https://pinata.cloud)
+2. Go to the API Keys section in your dashboard
+3. Generate a new JWT (JSON Web Token)
+4. Add to your `.env` file:
+   ```
+   PINATA_JWT=your_jwt_token
+   ```
+
+#### Testing IPFS Configuration
+After configuration, test your IPFS setup:
+```bash
+pnpm build
+pnpm test:ipfs
+```
+
 ## Usage
 
 ### Quick Start
@@ -94,7 +113,8 @@ pnpm format  # Format code with Prettier
 - [ ] **v1.2.0 - Security Council Operations**
     - [x] Comprehensive documentation
     - [x] MIT License adoption
-    - [ ] Proposal creation for SC members
+    - [x] Proposal creation for SC members (standard and emergency)
+    - [x] IPFS metadata pinning integration
     - [ ] Proposal approval workflow
 
 - [ ] **v1.3.0 - Delegation & Governance**

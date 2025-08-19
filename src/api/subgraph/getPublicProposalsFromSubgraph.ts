@@ -1,6 +1,6 @@
 import { INetworkConfig } from '../../types/network.type';
 import { IProposalMetadata } from '../../types/proposal.type';
-import getIpfsFile from '../ipfs/getIpfsFile';
+import { getIpfsFileSafe } from '../ipfs/getIpfsFile';
 import { fetchAllPublicProposalsFromSubgraph, SubgraphProposal } from './index';
 
 interface ProcessedProposal {
@@ -22,7 +22,11 @@ async function parseMetadata(metadataUri: string): Promise<IProposalMetadata | n
 
     if (metadataUri.startsWith('ipfs://')) {
       const ipfsHash = metadataUri.replace('ipfs://', '');
-      const metadata = await getIpfsFile(ipfsHash);
+      const metadata = await getIpfsFileSafe(ipfsHash);
+      if (!metadata) {
+        console.warn(`Could not fetch metadata from IPFS hash ${ipfsHash}, continuing without it`);
+        return null;
+      }
       return metadata as IProposalMetadata;
     }
 

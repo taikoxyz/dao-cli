@@ -9,6 +9,7 @@ import getPublicProposals from '../api/dao/public-proposal/getPublicProposals';
 import getDelegates, { getDelegateCount, getDelegate } from '../api/dao/delegates/getDelegates';
 import { ABIs } from '../abi';
 import { getPublicClient } from '../api/viem';
+import { createProposalPrompt } from '../api/dao/security-council/createProposal.prompt';
 
 export async function selectMainMenuPrompt(config: INetworkConfig, walletClient: WalletClient): Promise<void> {
   const address = walletClient.account?.address as `0x${string}`;
@@ -58,10 +59,16 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
 
       const nextAction = await select({
         message: 'What would you like to do as a Security Council member?',
-        choices: [{ value: 'View Standard Proposals' }, { value: 'View Emergency Proposals' }],
+        choices: [
+          { value: 'Create New Proposal' },
+          { value: 'View Standard Proposals' },
+          { value: 'View Emergency Proposals' }
+        ],
       });
 
-      if (nextAction === 'View Standard Proposals') {
+      if (nextAction === 'Create New Proposal') {
+        await createProposalPrompt(config, walletClient);
+      } else if (nextAction === 'View Standard Proposals') {
         const proposals = (await getStandardProposals(config)) || [];
         const proposalSelect = await select({
           message: 'Select a standard proposal to view details:',

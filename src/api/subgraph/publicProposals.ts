@@ -1,6 +1,6 @@
 import { INetworkConfig } from '../../types/network.type';
 import { IProposalMetadata } from '../../types/proposal.type';
-import getIpfsFile from '../ipfs/getIpfsFile';
+import { getIpfsFileSafe } from '../ipfs/getIpfsFile';
 import { SubgraphOptimisticProposal } from './types';
 import { hexToString } from 'viem';
 
@@ -79,7 +79,10 @@ export async function getPublicProposalFromSubgraph(proposalId: number, config: 
       try {
         const ipfsUri = hexToString(metadataHex);
         const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
-        metadata = await getIpfsFile<IProposalMetadata>(rawUri);
+        metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
+        if (!metadata) {
+          console.warn(`Could not fetch metadata for public proposal ${proposalId}, continuing without it`);
+        }
       } catch (error) {
         console.error(`Error fetching metadata for public proposal ${proposalId}:`, error);
       }
@@ -217,7 +220,10 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
           try {
             const ipfsUri = hexToString(metadataHex);
             const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
-            metadata = await getIpfsFile<IProposalMetadata>(rawUri);
+            metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
+            if (!metadata) {
+              console.warn(`Could not fetch metadata for public proposal ${proposal.id}, continuing without it`);
+            }
           } catch (error) {
             console.error(`Error fetching metadata for public proposal ${proposal.id}:`, error);
           }

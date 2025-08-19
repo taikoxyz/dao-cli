@@ -2,8 +2,9 @@ import { Address, hexToString } from 'viem';
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
-import getIpfsFile from '../../ipfs/getIpfsFile';
-import { IProposalMetadata } from '../../../types/proposal.type';
+import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
+import { EncryptedProposalMetadata } from '../../../types/proposal.type';
+import { decrypt } from '../security-council/getDecryptionKey';
 
 export default async function getEmergencyProposal(proposalId: number, config: INetworkConfig) {
   try {
@@ -15,21 +16,41 @@ export default async function getEmergencyProposal(proposalId: number, config: I
       args: [proposalId],
     });
 
-    const metadataURI = res[3] as Address;
+    // res[3] is the encryptedPayloadUri for emergency proposals
+    const encryptedPayloadURI = res[3] as Address;
 
-    const ipfsUri = hexToString(metadataURI);
+    const ipfsUri = hexToString(encryptedPayloadURI);
     const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
 
-    const metadata = await getIpfsFile<IProposalMetadata>(rawUri);
+    // Fetch the encrypted payload from IPFS
+    const encryptedPayload = await getIpfsFileSafe<EncryptedProposalMetadata>(rawUri);
+    
+    let decryptedMetadata = null;
+    if (encryptedPayload) {
+      try {
+        // Try to decrypt the proposal
+        console.info('Attempting to decrypt emergency proposal...');
+        decryptedMetadata = await decrypt(config, encryptedPayload);
+        if (decryptedMetadata) {
+          console.info('Successfully decrypted emergency proposal');
+        }
+      } catch {
+        console.warn('Could not decrypt emergency proposal (you may not be a Security Council member)');
+      }
+    } else {
+      console.warn(`Could not fetch encrypted payload for emergency proposal ${proposalId}`);
+    }
+
     return {
       executed: res[0],
       approvals: res[1],
       parameters: res[2],
-      metadataURI: ipfsUri,
-      destinationActions: res[4],
-      destinationPlugin: res[5] as Address,
+      encryptedPayloadURI: ipfsUri,
+      publicMetadataUriHash: res[4],
+      destinationActionsHash: res[5],
+      destinationPlugin: res[6] as Address,
       proposalId,
-      ...metadata,
+      ...(decryptedMetadata || { title: '[Encrypted]', summary: 'This proposal is encrypted for Security Council members', description: 'You must be a Security Council member to view this proposal' }),
     };
   } catch (e) {
     console.error(`Error fetching emergency proposal ${proposalId}:`, e);
