@@ -2,23 +2,37 @@ import { Address } from 'viem';
 import getSecurityCouncilMembers from '../../../../src/api/dao/security-council/getSecurityCouncilMembers';
 import { getPublicClient } from '../../../../src/api/viem';
 import { ABIs } from '../../../../src/abi';
-import { cache } from '../../../../src/api/cache';
+import { getNetworkCache } from '../../../../src/api/cache';
 import { INetworkConfig } from '../../../../src/types/network.type';
 
 // Mock dependencies
 jest.mock('../../../../src/api/viem');
-jest.mock('../../../../src/api/cache');
+jest.mock('../../../../src/api/cache', () => ({
+  getNetworkCache: jest.fn(() => ({
+    has: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+  }))
+}));
 jest.mock('../../../../src/abi');
 
 const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-const mockCache = cache as jest.Mocked<typeof cache>;
+const mockGetNetworkCache = getNetworkCache as jest.MockedFunction<typeof getNetworkCache>;
 
 describe('getSecurityCouncilMembers', () => {
   let mockConfig: INetworkConfig;
-  let mockClient: any;
+  let mockClient: Record<string, unknown>;
+  let mockCache: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockCache = {
+      has: jest.fn(),
+      get: jest.fn(),
+      set: jest.fn(),
+    };
+    mockGetNetworkCache.mockReturnValue(mockCache);
 
     mockConfig = {
       network: 'holesky',
@@ -45,10 +59,11 @@ describe('getSecurityCouncilMembers', () => {
       getBlockNumber: jest.fn(),
     };
 
-    mockGetPublicClient.mockReturnValue(mockClient);
+    mockGetPublicClient.mockReturnValue(mockClient as any);
 
     // Mock ABIs
-    (ABIs as any) = {
+    // eslint-disable-next-line no-import-assign
+    (ABIs as unknown) = {
       SignerList: [
         {
           name: 'getEncryptionAgents',
@@ -90,7 +105,7 @@ describe('getSecurityCouncilMembers', () => {
       expect(mockCache.has).toHaveBeenCalledWith('signerList');
       expect(mockCache.get).toHaveBeenCalledWith('signerList');
       expect(result).toEqual(cachedData);
-      expect(mockClient.readContract).not.toHaveBeenCalled();
+      expect((mockClient.readContract as jest.Mock)).not.toHaveBeenCalled();
     });
 
     it('should fetch fresh data when cache is empty', async () => {
@@ -106,23 +121,23 @@ describe('getSecurityCouncilMembers', () => {
         '0x4444444444444444444444444444444444444444' as Address,
       ];
 
-      mockClient.readContract
+      ((mockClient.readContract as jest.Mock) as jest.Mock)
         .mockResolvedValueOnce(mockSigners) // getEncryptionAgents
         .mockResolvedValueOnce(mockOwners[0]) // getListedEncryptionOwnerAtBlock for first signer
         .mockResolvedValueOnce(mockOwners[1]); // getListedEncryptionOwnerAtBlock for second signer
 
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      ((mockClient.getBlockNumber as jest.Mock) as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
       expect(mockCache.has).toHaveBeenCalledWith('signerList');
-      expect(mockClient.readContract).toHaveBeenCalledWith({
+      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getEncryptionAgents',
         args: [],
       });
-      expect(mockClient.getBlockNumber).toHaveBeenCalled();
+      expect((mockClient.getBlockNumber as jest.Mock)).toHaveBeenCalled();
       expect(result).toEqual([
         { owner: mockOwners[0], signer: mockSigners[0] },
         { owner: mockOwners[1], signer: mockSigners[1] },
@@ -139,12 +154,12 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.readContract as jest.Mock).mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect(mockClient.readContract).toHaveBeenCalledWith({
+      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getEncryptionAgents',
@@ -156,13 +171,13 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.readContract as jest.Mock).mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect(mockClient.getBlockNumber).toHaveBeenCalled();
-      expect(mockClient.readContract).toHaveBeenCalledWith({
+      expect((mockClient.getBlockNumber as jest.Mock)).toHaveBeenCalled();
+      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getListedEncryptionOwnerAtBlock',
@@ -182,19 +197,19 @@ describe('getSecurityCouncilMembers', () => {
         '0x6666666666666666666666666666666666666666' as Address,
       ];
 
-      mockClient.readContract
+      (mockClient.readContract as jest.Mock)
         .mockResolvedValueOnce(mockSigners)
         .mockResolvedValueOnce(mockOwners[0])
         .mockResolvedValueOnce(mockOwners[1])
         .mockResolvedValueOnce(mockOwners[2]);
-      mockClient.getBlockNumber.mockResolvedValue(500n);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(500n);
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect(mockClient.readContract).toHaveBeenCalledTimes(4); // 1 for getEncryptionAgents + 3 for owners
+      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledTimes(4); // 1 for getEncryptionAgents + 3 for owners
 
-      mockSigners.forEach((signer, index) => {
-        expect(mockClient.readContract).toHaveBeenCalledWith({
+      mockSigners.forEach((signer) => {
+        expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
           address: mockConfig.contracts.SignerList,
           abi: ABIs.SignerList,
           functionName: 'getListedEncryptionOwnerAtBlock',
@@ -204,13 +219,13 @@ describe('getSecurityCouncilMembers', () => {
     });
 
     it('should handle empty signers list', async () => {
-      mockClient.readContract.mockResolvedValueOnce([]);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.readContract as jest.Mock).mockResolvedValueOnce([]);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
       expect(result).toEqual([]);
-      expect(mockClient.readContract).toHaveBeenCalledTimes(1); // Only getEncryptionAgents
+      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledTimes(1); // Only getEncryptionAgents
     });
   });
 
@@ -228,11 +243,11 @@ describe('getSecurityCouncilMembers', () => {
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      mockClient.readContract
+      (mockClient.readContract as jest.Mock)
         .mockResolvedValueOnce(mockSigners)
         .mockRejectedValueOnce(new Error('Contract call failed')) // First owner fetch fails
         .mockResolvedValueOnce(mockOwner); // Second owner fetch succeeds
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
@@ -260,12 +275,12 @@ describe('getSecurityCouncilMembers', () => {
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      mockClient.readContract
+      (mockClient.readContract as jest.Mock)
         .mockResolvedValueOnce(mockSigners)
         .mockResolvedValueOnce(mockOwners[0]) // First succeeds
         .mockRejectedValueOnce(new Error('Network error')) // Second fails
         .mockResolvedValueOnce(mockOwners[1]); // Third succeeds
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
@@ -288,8 +303,8 @@ describe('getSecurityCouncilMembers', () => {
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
       const expectedResult = [{ owner: mockOwner, signer: mockSigners[0] }];
 
-      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.readContract as jest.Mock).mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
 
@@ -306,11 +321,11 @@ describe('getSecurityCouncilMembers', () => {
         '0x4444444444444444444444444444444444444444' as Address,
       ];
 
-      mockClient.readContract
+      (mockClient.readContract as jest.Mock)
         .mockResolvedValueOnce(mockSigners)
         .mockResolvedValueOnce(mockOwners[0])
         .mockResolvedValueOnce(mockOwners[1]);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
 
@@ -330,8 +345,8 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.readContract as jest.Mock).mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
@@ -353,11 +368,11 @@ describe('getSecurityCouncilMembers', () => {
         '0x4444444444444444444444444444444444444444' as Address,
       ];
 
-      mockClient.readContract
+      (mockClient.readContract as jest.Mock)
         .mockResolvedValueOnce(mockSigners)
         .mockResolvedValueOnce(mockOwners[0])
         .mockResolvedValueOnce(mockOwners[1]);
-      mockClient.getBlockNumber.mockResolvedValue(1000n);
+      (mockClient.getBlockNumber as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 

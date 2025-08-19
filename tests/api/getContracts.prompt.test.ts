@@ -169,8 +169,8 @@ describe('getContractsPrompt', () => {
       ...mockConfig,
       contracts: {
         ...mockConfig.contracts,
-        EmergencyMultisigPlugin: undefined as any,
-        OptimisticTokenVotingPlugin: undefined as any,
+        EmergencyMultisigPlugin: undefined as unknown as `0x${string}`,
+        OptimisticTokenVotingPlugin: undefined as unknown as `0x${string}`,
       },
     };
 
@@ -214,7 +214,7 @@ describe('getContractsPrompt', () => {
 
     const callArgs = (mockSelect as jest.Mock).mock.calls[0][0];
     const choices = callArgs.choices;
-    const values = choices.map((c: any) => c.value);
+    const values = choices.map((c: Record<string, unknown>) => c.value);
 
     expect(values).toEqual(['DAO', 'MultisigPlugin', 'EmergencyMultisigPlugin', 'OptimisticTokenVotingPlugin']);
   });

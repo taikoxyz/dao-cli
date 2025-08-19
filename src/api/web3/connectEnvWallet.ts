@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { INetworkConfig } from '../../types/network.type';
-import { getPublicClient, getWalletClient } from '../viem';
+// import { getPublicClient, getWalletClient } from '../viem';
 import { Address, createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 

@@ -1,4 +1,4 @@
-import { encodeFunctionData, WalletClient, PublicClient, Address, decodeEventLog, keccak256, toBytes } from 'viem';
+import { encodeFunctionData, WalletClient, PublicClient, Address, decodeEventLog } from 'viem';
 import { INetworkConfig } from '../../../types/network.type';
 import { ABIs } from '../../../abi';
 import { pinJsonToIpfs } from '../../ipfs/pinToIpfs';
@@ -28,7 +28,7 @@ export async function createProposal(
   actions: ProposalAction[] = [],
   destinationPlugin: Address | null = null,
   approveProposal: boolean = true,
-  proposalType: 'standard' | 'emergency' = 'standard'
+  proposalType: 'standard' | 'emergency' = 'standard',
 ): Promise<string> {
   try {
     // Upload metadata to IPFS
@@ -36,7 +36,7 @@ export async function createProposal(
     const ipfsHash = await pinJsonToIpfs(metadata);
     const metadataURI = `ipfs://${ipfsHash}`;
     console.info(`✅ Metadata uploaded to IPFS: ${metadataURI}`);
-    
+
     // Convert metadata URI to bytes
     const metadataBytes = Buffer.from(metadataURI, 'utf-8');
     const metadataHex = `0x${metadataBytes.toString('hex')}` as `0x${string}`;
@@ -46,14 +46,14 @@ export async function createProposal(
     if (proposalType === 'emergency') {
       // Emergency proposals have a different contract interface
       const multisigAddress = config.contracts.EmergencyMultisigPlugin;
-      
+
       // Properly encrypt the proposal for Security Council members
       const encryptedData = await encryptEmergencyProposal(config, metadata, actions);
-      
+
       // Convert encrypted payload URI to bytes
       const encryptedPayloadBytes = Buffer.from(encryptedData.encryptedPayloadURI, 'utf-8');
       const encryptedPayloadHex = `0x${encryptedPayloadBytes.toString('hex')}` as `0x${string}`;
-      
+
       // Emergency proposals still need a destination plugin
       const finalDestinationPlugin = destinationPlugin || config.contracts.OptimisticTokenVotingPlugin;
 
@@ -93,38 +93,38 @@ export async function createProposal(
 
     // Execute the transaction
     const hash = await walletClient.writeContract(request);
-    
+
     // Wait for transaction confirmation
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
-    
+
     if (receipt.status === 'success') {
       console.info(`✅ Proposal created successfully!`);
       console.info(`Transaction hash: ${hash}`);
-      
+
       // Try to extract proposal ID from events
       const abi = proposalType === 'emergency' ? ABIs.EmergencyMultisigPlugin : ABIs.MultisigPlugin;
-      const proposalCreatedEvent = receipt.logs.find(log => {
+      const proposalCreatedEvent = receipt.logs.find((log) => {
         try {
           const decoded = decodeEventLog({
             abi,
             data: log.data,
             topics: log.topics,
-          }) as any;
+          }) as { eventName: string };
           return decoded.eventName === 'ProposalCreated';
         } catch {
           return false;
         }
       });
-      
+
       if (proposalCreatedEvent) {
         const decoded = decodeEventLog({
           abi,
           data: proposalCreatedEvent.data,
           topics: proposalCreatedEvent.topics,
-        }) as any;
+        }) as { args?: { proposalId?: unknown } };
         console.info(`Proposal ID: ${decoded.args?.proposalId}`);
       }
-      
+
       return hash;
     } else {
       throw new Error('Transaction failed');
@@ -140,10 +140,10 @@ export async function createProposal(
  */
 export function encodeAction(
   contractAddress: Address,
-  abi: any[],
+  abi: unknown[],
   functionName: string,
-  args: any[] = [],
-  value: bigint = 0n
+  args: unknown[] = [],
+  value: bigint = 0n,
 ): ProposalAction {
   const data = encodeFunctionData({
     abi,

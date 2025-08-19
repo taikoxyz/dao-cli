@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as dotenv from 'dotenv';
+// import * as dotenv from 'dotenv';
 import getIpfsFile from '../../../src/api/ipfs/getIpfsFile';
 import wait from '../../../src/util/wait';
 import { cache } from '../../../src/api/cache';
@@ -39,7 +39,7 @@ describe('getIpfsFile', () => {
       mockCache.has.mockResolvedValue(true);
       mockCache.get.mockResolvedValue(testContent);
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockCache.has).toHaveBeenCalledWith(`ipfs:${testHash}`);
       expect(mockCache.get).toHaveBeenCalledWith(`ipfs:${testHash}`);
@@ -54,7 +54,7 @@ describe('getIpfsFile', () => {
       mockAxios.get.mockResolvedValue({ data: testContent });
       mockWait.mockResolvedValue();
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockCache.set).toHaveBeenCalledWith(`ipfs:${testHash}`, testContent);
       expect(result).toEqual(testContent);
@@ -73,15 +73,15 @@ describe('getIpfsFile', () => {
       mockAxios.get.mockResolvedValue({ data: testContent });
       mockWait.mockResolvedValue();
 
-      await getIpfsFile<typeof testContent>(testHash);
+      await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockAxios.get).toHaveBeenCalledWith(
         `https://ipfs.io/ipfs/${testHash}`,
         expect.objectContaining({
           timeout: 10000,
-          headers: {
+          headers: expect.objectContaining({
             Accept: 'application/json',
-          },
+          }),
         }),
       );
     });
@@ -100,20 +100,20 @@ describe('getIpfsFile', () => {
     it('should use correct timeout and headers', async () => {
       mockAxios.get.mockResolvedValue({ data: testContent });
 
-      await getIpfsFile<typeof testContent>(testHash);
+      await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockAxios.get).toHaveBeenCalledWith(expect.any(String), {
         timeout: 10000,
-        headers: {
+        headers: expect.objectContaining({
           Accept: 'application/json',
-        },
+        }),
       });
     });
 
     it('should wait 500ms before making request', async () => {
       mockAxios.get.mockResolvedValue({ data: testContent });
 
-      await getIpfsFile<typeof testContent>(testHash);
+      await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockWait).toHaveBeenCalledWith(500);
       // Verify wait was called (order checking is complex in Jest)
@@ -190,23 +190,20 @@ describe('getIpfsFile', () => {
       const networkError = new Error('Network Error');
       mockAxios.get.mockRejectedValue(networkError);
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result).toBeUndefined();
-      expect(console.error).toHaveBeenCalledWith(`Error fetching IPFS file with hash ${testHash}:`, 'Network Error');
+      expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
     it('should handle timeout errors', async () => {
       const timeoutError = new Error('timeout of 10000ms exceeded');
       mockAxios.get.mockRejectedValue(timeoutError);
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result).toBeUndefined();
-      expect(console.error).toHaveBeenCalledWith(
-        `Error fetching IPFS file with hash ${testHash}:`,
-        'timeout of 10000ms exceeded',
-      );
+      expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
     it('should handle 404 errors', async () => {
@@ -216,33 +213,27 @@ describe('getIpfsFile', () => {
       };
       mockAxios.get.mockRejectedValue(notFoundError);
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result).toBeUndefined();
-      expect(console.error).toHaveBeenCalledWith(
-        `Error fetching IPFS file with hash ${testHash}:`,
-        'Request failed with status code 404',
-      );
+      expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
     it('should handle invalid JSON responses', async () => {
       const invalidJsonError = new Error('Unexpected token < in JSON at position 0');
       mockAxios.get.mockRejectedValue(invalidJsonError);
 
-      const result = await getIpfsFile<typeof testContent>(testHash);
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result).toBeUndefined();
-      expect(console.error).toHaveBeenCalledWith(
-        `Error fetching IPFS file with hash ${testHash}:`,
-        'Unexpected token < in JSON at position 0',
-      );
+      expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
     it('should not cache failed requests', async () => {
       const error = new Error('Fetch failed');
       mockAxios.get.mockRejectedValue(error);
 
-      await getIpfsFile<typeof testContent>(testHash);
+      await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockCache.set).not.toHaveBeenCalled();
     });
@@ -257,7 +248,7 @@ describe('getIpfsFile', () => {
     it('should use correct cache key format', async () => {
       mockCache.has.mockResolvedValue(false);
 
-      await getIpfsFile<typeof testContent>(testHash);
+      await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockCache.has).toHaveBeenCalledWith(`ipfs:${testHash}`);
       expect(mockCache.set).toHaveBeenCalledWith(`ipfs:${testHash}`, testContent);
@@ -326,7 +317,7 @@ describe('getIpfsFile', () => {
       mockAxios.get.mockResolvedValueOnce({ data: testContent });
       mockWait.mockResolvedValue();
 
-      const result1 = await getIpfsFile<typeof testContent>(testHash);
+      const result1 = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result1).toEqual(testContent);
       expect(mockAxios.get).toHaveBeenCalledTimes(1);
@@ -336,7 +327,7 @@ describe('getIpfsFile', () => {
       mockCache.has.mockResolvedValueOnce(true);
       mockCache.get.mockResolvedValueOnce(testContent);
 
-      const result2 = await getIpfsFile<typeof testContent>(testHash);
+      const result2 = await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(result2).toEqual(testContent);
       expect(mockAxios.get).toHaveBeenCalledTimes(1); // Still only called once

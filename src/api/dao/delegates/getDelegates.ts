@@ -3,7 +3,7 @@ import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
 import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
-import { cache } from '../../cache';
+import { getNetworkCache } from '../../cache';
 
 // ERC20Votes ABI for voting power
 const ERC20VotesABI = parseAbi([
@@ -16,7 +16,7 @@ const ERC20VotesABI = parseAbi([
 export interface DelegateProfile {
   address: Address;
   contentUrl: string;
-  metadata?: any;
+  metadata?: unknown;
   votingPower?: bigint;
   tokenBalance?: bigint;
   identifier?: string;
@@ -28,6 +28,7 @@ export interface DelegateProfile {
 export default async function getDelegates(config: INetworkConfig): Promise<DelegateProfile[]> {
   try {
     // Check cache first - but invalidate if metadata is missing
+    const cache = getNetworkCache(config.network);
     const cacheKey = `delegates-${config.network}`;
     const inCache = await cache.has(cacheKey);
     if (inCache) {
@@ -87,11 +88,12 @@ export default async function getDelegates(config: INetworkConfig): Promise<Dele
             profile.metadata = metadata;
             // Extract identifier from metadata if available - check 'identifier' field first
             if (metadata && typeof metadata === 'object') {
-              profile.identifier =
-                (metadata as any).identifier ||
-                (metadata as any).name ||
-                (metadata as any).title ||
-                (metadata as any).displayName;
+              profile.identifier = (
+                (metadata as Record<string, unknown>).identifier ||
+                (metadata as Record<string, unknown>).name ||
+                (metadata as Record<string, unknown>).title ||
+                (metadata as Record<string, unknown>).displayName
+              ) as string | undefined;
               if (!profile.identifier) {
                 console.warn(`No identifier found in metadata for ${address}`);
               }
@@ -160,11 +162,12 @@ export async function getDelegate(
         profile.metadata = metadata;
         // Extract identifier from metadata if available - check 'identifier' field first
         if (metadata && typeof metadata === 'object') {
-          profile.identifier =
-            (metadata as any).identifier ||
-            (metadata as any).name ||
-            (metadata as any).title ||
-            (metadata as any).displayName;
+          profile.identifier = (
+            (metadata as Record<string, unknown>).identifier ||
+            (metadata as Record<string, unknown>).name ||
+            (metadata as Record<string, unknown>).title ||
+            (metadata as Record<string, unknown>).displayName
+          ) as string | undefined;
         }
       } catch (error) {
         console.error(`Error fetching IPFS metadata for delegate ${address}:`, error);

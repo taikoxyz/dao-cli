@@ -1,6 +1,4 @@
 import { cache } from '../src/api/cache';
-import getContractsPrompt from '../src/api/getContracts.prompt';
-import interactWithContractPrompt from '../src/api/interactWithContract.prompt';
 import { selectNetworkPrompt } from '../src/api/selectNetwork.prompt';
 import connectEnvWallet from '../src/api/web3/connectEnvWallet';
 import { selectMainMenuPrompt } from '../src/cli/mainMenu.prompt';
@@ -16,22 +14,23 @@ jest.mock('../src/cli/mainMenu.prompt');
 jest.mock('../src/util/stringifyJsonWithBigInt');
 
 const mockCache = cache as jest.Mocked<typeof cache>;
-const mockGetContractsPrompt = getContractsPrompt as jest.MockedFunction<typeof getContractsPrompt>;
-const mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<
-  typeof interactWithContractPrompt
->;
+// const _mockGetContractsPrompt = getContractsPrompt as jest.MockedFunction<typeof getContractsPrompt>;
+// const _mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<
+//   typeof interactWithContractPrompt
+// >;
 const mockSelectNetworkPrompt = selectNetworkPrompt as jest.MockedFunction<typeof selectNetworkPrompt>;
 const mockConnectEnvWallet = connectEnvWallet as jest.MockedFunction<typeof connectEnvWallet>;
 const mockSelectMainMenuPrompt = selectMainMenuPrompt as jest.MockedFunction<typeof selectMainMenuPrompt>;
 
 // Mock process.exit to prevent tests from actually exiting
-const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+// Mock process.exit to prevent tests from actually exiting
+jest.spyOn(process, 'exit').mockImplementation(() => {
   throw new Error('process.exit called');
 });
 
 describe('main index.ts', () => {
   let mockConfig: INetworkConfig;
-  let mockWalletClient: any;
+  let mockWalletClient: Record<string, unknown>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -49,15 +48,15 @@ describe('main index.ts', () => {
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -68,7 +67,7 @@ describe('main index.ts', () => {
     };
 
     mockSelectNetworkPrompt.mockResolvedValue(mockConfig);
-    mockConnectEnvWallet.mockResolvedValue(mockWalletClient);
+    mockConnectEnvWallet.mockResolvedValue(mockWalletClient as any);
     mockCache.get.mockResolvedValue(undefined);
     mockCache.set.mockResolvedValue();
     mockCache.clear.mockResolvedValue();
@@ -108,7 +107,7 @@ describe('main index.ts', () => {
         require('../src/index');
         // Give time for async main() to run
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw due to mocked exit
       }
 
@@ -117,14 +116,14 @@ describe('main index.ts', () => {
     });
 
     it('should handle cache operations for network changes', async () => {
-      const previousConfig = { ...mockConfig, network: 'mainnet' as any };
+      const previousConfig = { ...mockConfig, network: 'mainnet' as unknown };
       mockCache.get.mockResolvedValue(previousConfig);
 
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -139,7 +138,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -151,7 +150,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -165,7 +164,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -183,7 +182,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -197,7 +196,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -211,7 +210,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // Expected to throw
       }
 
@@ -227,7 +226,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         await new Promise((resolve) => setTimeout(resolve, 10));
-      } catch (error) {
+      } catch {
         // May throw due to mocked functions
       }
 

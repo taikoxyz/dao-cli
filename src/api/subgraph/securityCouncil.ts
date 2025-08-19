@@ -1,13 +1,36 @@
 import { INetworkConfig } from '../../types/network.type';
 import { Address } from 'viem';
-import { cache } from '../cache';
+import { getNetworkCache } from '../cache';
+
+interface GraphQLResponse<T = unknown> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface Approver {
+  id: string;
+}
+
+interface ProposalMixin {
+  id: string;
+  approvers: Approver[];
+}
+
+interface SignerListData {
+  signerListMembers: ProposalMixin[];
+}
+
+interface ProposalMixinsData {
+  proposalMixins: Array<{ id: string }>;
+}
 
 export async function getSecurityCouncilMembersFromSubgraph(
   config: INetworkConfig,
 ): Promise<{ owner: Address; signer: Address }[]> {
+  const cache = getNetworkCache(config.network);
   const inCache = await cache.has('signerList');
   if (inCache) {
-    console.info(`Using cached signer list`);
+    console.info(`Using cached signer list for ${config.network}`);
     return (await cache.get('signerList')) as { owner: Address; signer: Address }[];
   }
 
@@ -43,7 +66,7 @@ export async function getSecurityCouncilMembersFromSubgraph(
       throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json()) as GraphQLResponse<SignerListData>;
 
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
@@ -54,9 +77,9 @@ export async function getSecurityCouncilMembersFromSubgraph(
     const approversSet = new Set<string>();
     const mixins = result.data?.signerListMembers || [];
 
-    mixins.forEach((mixin: any) => {
+    mixins.forEach((mixin: ProposalMixin) => {
       if (mixin.approvers) {
-        mixin.approvers.forEach((approver: any) => {
+        mixin.approvers.forEach((approver: Approver) => {
           approversSet.add(approver.id);
         });
       }
@@ -115,7 +138,7 @@ export async function isAppointedAgentFromSubgraph(address: Address, config: INe
       throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json()) as GraphQLResponse<ProposalMixinsData>;
 
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
@@ -130,7 +153,7 @@ export async function isAppointedAgentFromSubgraph(address: Address, config: INe
   }
 }
 
-export async function getDecryptionKeyFromSubgraph(proposalId: number, config: INetworkConfig): Promise<string | null> {
+export async function getDecryptionKeyFromSubgraph(): Promise<string | null> {
   // Note: Decryption keys are typically not stored in the subgraph
   // This would need to be handled differently, possibly through IPFS or
   // a separate service for key management

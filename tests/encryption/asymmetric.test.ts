@@ -6,7 +6,6 @@ import {
   generateKeyPair,
   getSeededKeyPair,
   computePublicKey,
-  KeyPair,
 } from '../../src/api/encryption/asymmetric';
 
 describe('Asymmetric Encryption', () => {

@@ -1,8 +1,46 @@
 import { INetworkConfig } from '../../types/network.type';
 import { IProposalMetadata } from '../../types/proposal.type';
 import { getIpfsFileSafe } from '../ipfs/getIpfsFile';
-import { SubgraphOptimisticProposal } from './types';
+// import { SubgraphOptimisticProposal } from './types';
 import { hexToString } from 'viem';
+
+interface GraphQLResponse<T = unknown> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface OptimisticProposal {
+  id: string;
+  creator: string;
+  metadata: string;
+  startDate: string;
+  endDate: string;
+  creatorAddress: string;
+  contractEventId: string;
+  creationBlockNumber: string;
+}
+
+interface ProposalMixin {
+  id: string;
+  proposalId: string;
+  metadata: string;
+  creator: string;
+  creationTxHash: string;
+  creationBlockNumber: string;
+  executionBlockNumber: string | null;
+  executionTxHash: string;
+  vetoes: Array<{ id: string }>;
+}
+
+interface PublicProposalData {
+  optimisticTokenVotingProposals?: OptimisticProposal[];
+  proposalMixins?: ProposalMixin[];
+}
+
+interface PublicProposalsData {
+  optimisticTokenVotingProposals?: OptimisticProposal[];
+  proposalMixins?: ProposalMixin[];
+}
 
 export async function getPublicProposalFromSubgraph(proposalId: number, config: INetworkConfig) {
   const query = `
@@ -56,15 +94,15 @@ export async function getPublicProposalFromSubgraph(proposalId: number, config: 
       throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json()) as GraphQLResponse<PublicProposalData>;
 
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
       return undefined;
     }
 
-    const proposal = result.data?.optimisticTokenVotingProposals?.[0];
-    const mixin = result.data?.proposalMixins?.[0];
+    const proposal = result.data?.optimisticTokenVotingProposals?.[0] as any;
+    const mixin = result.data?.proposalMixins?.[0] as any;
 
     if (!proposal && !mixin) {
       console.log(`Public proposal ${proposalId} not found in subgraph`);
@@ -153,8 +191,8 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
       throw new Error('Subgraph endpoint is not defined in network config');
     }
 
-    const allOptimisticProposals: any[] = [];
-    const allMixins: any[] = [];
+    const allOptimisticProposals: OptimisticProposal[] = [];
+    const allMixins: ProposalMixin[] = [];
     const batchSize = 1000;
     let skip = 0;
     let hasMore = true;
@@ -178,7 +216,7 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
         throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
       }
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLResponse<PublicProposalsData>;
 
       if (result.errors) {
         console.error('GraphQL errors:', result.errors);
@@ -205,13 +243,13 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
 
     // Create a map for mixins by proposal ID
     const mixinMap = new Map();
-    allMixins.forEach((mixin) => {
+    allMixins.forEach((mixin: any) => {
       mixinMap.set(mixin.proposalId, mixin);
     });
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allOptimisticProposals.map(async (proposal) => {
+      allOptimisticProposals.map(async (proposal: any) => {
         const mixin = mixinMap.get(proposal.id);
         let metadata: IProposalMetadata | undefined;
 

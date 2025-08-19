@@ -1,8 +1,51 @@
 import { INetworkConfig } from '../../types/network.type';
 import { IProposalMetadata } from '../../types/proposal.type';
 import { getIpfsFileSafe } from '../ipfs/getIpfsFile';
-import { SubgraphStandardProposal, SubgraphProposalMixin } from './types';
+// import { SubgraphStandardProposal, SubgraphProposalMixin } from './types';
 import { hexToString } from 'viem';
+
+interface GraphQLResponse<T = unknown> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface Approver {
+  id: string;
+}
+
+interface StandardProposal {
+  id: string;
+  creator: string;
+  metadata: string;
+  startDate: string;
+  endDate: string;
+  contractEventId: string;
+  creationBlockNumber: string;
+}
+
+interface StandardProposalMixin {
+  id: string;
+  proposalId: string;
+  metadata: string;
+  creator: string;
+  isEmergency: boolean;
+  isStandard: boolean;
+  isOptimistic: boolean;
+  creationTxHash: string;
+  creationBlockNumber: string;
+  executionBlockNumber: string | null;
+  executionTxHash: string;
+  approvers: Approver[];
+}
+
+interface StandardProposalData {
+  proposalMixins?: StandardProposalMixin[];
+  standardProposals?: StandardProposal[];
+}
+
+interface StandardProposalsData {
+  proposalMixins?: StandardProposalMixin[];
+}
 
 export async function getStandardProposalFromSubgraph(proposalId: number, config: INetworkConfig) {
   const query = `
@@ -58,15 +101,15 @@ export async function getStandardProposalFromSubgraph(proposalId: number, config
       throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json()) as GraphQLResponse<StandardProposalData>;
 
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
       return undefined;
     }
 
-    const mixin = result.data?.proposalMixins?.[0];
-    const proposal = result.data?.standardProposals?.[0];
+    const mixin = result.data?.proposalMixins?.[0] as any;
+    const proposal = result.data?.standardProposals?.[0] as any;
 
     if (!mixin && !proposal) {
       console.log(`Standard proposal ${proposalId} not found in subgraph`);
@@ -139,7 +182,7 @@ export async function getStandardProposalsFromSubgraph(config: INetworkConfig) {
       throw new Error('Subgraph endpoint is not defined in network config');
     }
 
-    const allProposals: any[] = [];
+    const allProposals: StandardProposalMixin[] = [];
     const batchSize = 1000;
     let skip = 0;
     let hasMore = true;
@@ -163,7 +206,7 @@ export async function getStandardProposalsFromSubgraph(config: INetworkConfig) {
         throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
       }
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLResponse<StandardProposalsData>;
 
       if (result.errors) {
         console.error('GraphQL errors:', result.errors);
@@ -188,7 +231,7 @@ export async function getStandardProposalsFromSubgraph(config: INetworkConfig) {
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allProposals.map(async (mixin) => {
+      allProposals.map(async (mixin: any) => {
         let metadata: IProposalMetadata | undefined;
 
         if (mixin.metadata) {

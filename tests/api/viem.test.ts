@@ -16,10 +16,10 @@ const mockPrivateKeyToAccount = privateKeyToAccount as jest.MockedFunction<typeo
 
 describe('viem client utilities', () => {
   let mockConfig: INetworkConfig;
-  let mockPublicClient: any;
-  let mockWalletClient: any;
-  let mockTransport: any;
-  let mockAccount: any;
+  let mockPublicClient: Record<string, unknown>;
+  let mockWalletClient: Record<string, unknown>;
+  let mockTransport: Record<string, unknown>;
+  let mockAccount: Record<string, unknown>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,10 +66,10 @@ describe('viem client utilities', () => {
       publicKey: '0x1234567890abcdef',
     };
 
-    mockCreatePublicClient.mockReturnValue(mockPublicClient);
-    mockCreateWalletClient.mockReturnValue(mockWalletClient);
-    mockHttp.mockReturnValue(mockTransport);
-    mockPrivateKeyToAccount.mockReturnValue(mockAccount);
+    mockCreatePublicClient.mockReturnValue(mockPublicClient as any);
+    mockCreateWalletClient.mockReturnValue(mockWalletClient as any);
+    mockHttp.mockReturnValue(mockTransport as any);
+    mockPrivateKeyToAccount.mockReturnValue(mockAccount as any);
   });
 
   describe('getPublicClient', () => {

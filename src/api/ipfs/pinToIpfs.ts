@@ -12,29 +12,29 @@ export interface IpfsPinResponse {
 /**
  * Pin JSON data to IPFS using Pinata
  */
-export async function pinJsonToIpfs(data: any): Promise<string> {
+export async function pinJsonToIpfs(data: unknown): Promise<string> {
   if (!process.env.PINATA_JWT) {
     throw new Error(
       'IPFS pinning not configured. Please set PINATA_JWT in your .env file.\n' +
-      'Get your JWT from https://app.pinata.cloud/developers/api-keys'
+        'Get your JWT from https://app.pinata.cloud/developers/api-keys',
     );
   }
-  
+
   return pinToPinata(data);
 }
 
 /**
  * Pin to Pinata using JWT
  */
-async function pinToPinata(data: any): Promise<string> {
+async function pinToPinata(data: unknown): Promise<string> {
   try {
     console.info('Pinning to IPFS via Pinata...');
-    
+
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.PINATA_JWT}`
+      Authorization: `Bearer ${process.env.PINATA_JWT}`,
     };
-    
+
     const response = await axios.post(
       'https://api.pinata.cloud/pinning/pinJSONToIPFS',
       {
@@ -43,22 +43,23 @@ async function pinToPinata(data: any): Promise<string> {
           name: `proposal-${Date.now()}`,
         },
         pinataOptions: {
-          cidVersion: 1
-        }
+          cidVersion: 1,
+        },
       },
-      { headers }
+      { headers },
     );
-    
+
     console.info(`Successfully pinned to IPFS: ${response.data.IpfsHash}`);
     return response.data.IpfsHash;
-  } catch (error: any) {
-    if (error.response?.status === 401) {
+  } catch (error: unknown) {
+    const err = error as { response?: { status: number; data?: { error?: string } }; message?: string };
+    if (err.response?.status === 401) {
       throw new Error('Invalid Pinata credentials. Please check your PINATA_JWT.');
     }
-    if (error.response?.status === 429) {
+    if (err.response?.status === 429) {
       throw new Error('Pinata rate limit exceeded. Please wait and try again.');
     }
-    throw new Error(`Failed to pin to Pinata: ${error.response?.data?.error || error.message}`);
+    throw new Error(`Failed to pin to Pinata: ${err.response?.data?.error || err.message || 'Unknown error'}`);
   }
 }
 
@@ -72,12 +73,13 @@ export async function testIpfsPinning(): Promise<boolean> {
       timestamp: new Date().toISOString(),
       message: 'IPFS pinning test',
     };
-    
+
     const hash = await pinJsonToIpfs(testData);
     console.info(`IPFS pinning test successful! Hash: ${hash}`);
     return true;
-  } catch (error: any) {
-    console.error(`IPFS pinning test failed: ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error(`IPFS pinning test failed: ${err.message || 'Unknown error'}`);
     return false;
   }
 }

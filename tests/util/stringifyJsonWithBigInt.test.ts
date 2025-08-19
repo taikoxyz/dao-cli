@@ -139,7 +139,7 @@ describe('stringifyJsonWithBigInt', () => {
         bigint: BigInt(123),
       };
 
-      const replacer = (key: string, value: any) => {
+      const replacer = (key: string, value: unknown) => {
         if (key === 'remove') return undefined;
         return value;
       };
@@ -174,7 +174,7 @@ describe('stringifyJsonWithBigInt', () => {
         string: 'test',
       };
 
-      const replacer = (key: string, value: any) => {
+      const replacer = (key: string, value: unknown) => {
         if (key === 'multiplier' && typeof value === 'number') {
           return value * 2;
         }
@@ -218,7 +218,7 @@ describe('stringifyJsonWithBigInt', () => {
 
   describe('edge cases', () => {
     it('should handle circular references (should throw)', () => {
-      const obj: any = { key: 'value' };
+      const obj: Record<string, unknown> = { key: 'value' };
       obj.circular = obj;
 
       expect(() => {
@@ -285,7 +285,7 @@ describe('stringifyJsonWithBigInt', () => {
       expect(parsed.computed).toBe('456');
       expect(parsed['string-key']).toBe('789');
       // Symbol properties are not included in JSON.stringify
-      expect(parsed[Symbol.for('bigint') as any]).toBeUndefined();
+      expect((parsed as any)[Symbol.for('bigint')]).toBeUndefined();
     });
   });
 

@@ -24,7 +24,7 @@ export default async function getEmergencyProposal(proposalId: number, config: I
 
     // Fetch the encrypted payload from IPFS
     const encryptedPayload = await getIpfsFileSafe<EncryptedProposalMetadata>(rawUri);
-    
+
     let decryptedMetadata = null;
     if (encryptedPayload) {
       try {
@@ -50,7 +50,11 @@ export default async function getEmergencyProposal(proposalId: number, config: I
       destinationActionsHash: res[5],
       destinationPlugin: res[6] as Address,
       proposalId,
-      ...(decryptedMetadata || { title: '[Encrypted]', summary: 'This proposal is encrypted for Security Council members', description: 'You must be a Security Council member to view this proposal' }),
+      ...(decryptedMetadata || {
+        title: '[Encrypted]',
+        summary: 'This proposal is encrypted for Security Council members',
+        description: 'You must be a Security Council member to view this proposal',
+      }),
     };
   } catch (e) {
     console.error(`Error fetching emergency proposal ${proposalId}:`, e);

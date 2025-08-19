@@ -1,6 +1,6 @@
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
-import { EmergencyProposal, IProposalMetadata } from '../../../types/proposal.type';
+// import { EmergencyProposal, IProposalMetadata } from '../../../types/proposal.type';
 import { getPublicClient } from '../../viem';
 import getPublicProposal from './getPublicProposal';
 

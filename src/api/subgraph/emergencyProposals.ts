@@ -1,8 +1,23 @@
 import { INetworkConfig } from '../../types/network.type';
 import { IProposalMetadata } from '../../types/proposal.type';
 import { getIpfsFileSafe } from '../ipfs/getIpfsFile';
-import { SubgraphEmergencyProposal, SubgraphProposalMixin } from './types';
+// import { SubgraphEmergencyProposal, SubgraphProposalMixin } from './types';
 import { hexToString } from 'viem';
+
+interface GraphQLResponse<T = unknown> {
+  data?: T;
+  errors?: Array<{ message: string }>;
+}
+
+interface EmergencyProposalData {
+  proposalMixins?: Array<unknown>;
+  emergencyProposals?: Array<unknown>;
+}
+
+interface EmergencyProposalsData {
+  emergencyProposals?: Array<unknown>;
+  proposalMixins?: Array<unknown>;
+}
 
 export async function getEmergencyProposalFromSubgraph(proposalId: number, config: INetworkConfig) {
   const query = `
@@ -57,15 +72,15 @@ export async function getEmergencyProposalFromSubgraph(proposalId: number, confi
       throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
     }
 
-    const result = (await response.json()) as any;
+    const result = (await response.json()) as GraphQLResponse<EmergencyProposalData>;
 
     if (result.errors) {
       console.error('GraphQL errors:', result.errors);
       return undefined;
     }
 
-    const mixin = result.data?.proposalMixins?.[0];
-    const proposal = result.data?.emergencyProposals?.[0];
+    const mixin = result.data?.proposalMixins?.[0] as any;
+    const proposal = result.data?.emergencyProposals?.[0] as any;
 
     if (!mixin && !proposal) {
       console.log(`Emergency proposal ${proposalId} not found in subgraph`);
@@ -153,8 +168,8 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
       throw new Error('Subgraph endpoint is not defined in network config');
     }
 
-    const allMixins: any[] = [];
-    const allEmergencyProposals: any[] = [];
+    const allMixins: Array<unknown> = [];
+    const allEmergencyProposals: Array<unknown> = [];
     const batchSize = 1000;
     let skip = 0;
     let hasMore = true;
@@ -178,15 +193,15 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
         throw new Error(`Subgraph request failed: ${response.status} ${response.statusText}`);
       }
 
-      const result = (await response.json()) as any;
+      const result = (await response.json()) as GraphQLResponse<EmergencyProposalsData>;
 
       if (result.errors) {
         console.error('GraphQL errors:', result.errors);
         break;
       }
 
-      const mixinBatch = result.data?.proposalMixins || [];
-      const emergencyBatch = result.data?.emergencyProposals || [];
+      const mixinBatch = (result.data?.proposalMixins || []) as any[];
+      const emergencyBatch = (result.data?.emergencyProposals || []) as any[];
 
       if (mixinBatch.length === 0 && emergencyBatch.length === 0) {
         hasMore = false;
@@ -205,13 +220,13 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
 
     // Create a map for emergency proposals by ID
     const emergencyMap = new Map();
-    allEmergencyProposals.forEach((ep) => {
+    allEmergencyProposals.forEach((ep: any) => {
       emergencyMap.set(ep.id, ep);
     });
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allMixins.map(async (mixin) => {
+      allMixins.map(async (mixin: any) => {
         const emergencyData = emergencyMap.get(mixin.proposalId);
         let metadata: IProposalMetadata | undefined;
 
@@ -221,9 +236,9 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
             const ipfsUri = hexToString(metadataHex);
             const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
             metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
-        if (!metadata) {
-          console.warn(`Could not fetch metadata for emergency proposal, continuing without it`);
-        }
+            if (!metadata) {
+              console.warn(`Could not fetch metadata for emergency proposal, continuing without it`);
+            }
           } catch (error) {
             console.error(`Error fetching metadata for emergency proposal ${mixin.proposalId}:`, error);
           }

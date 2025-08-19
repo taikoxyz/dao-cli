@@ -1,7 +1,7 @@
 import './util/stringifyJsonWithBigInt';
 import { cache } from './api/cache';
-import getContractsPrompt from './api/getContracts.prompt';
-import interactWithContractPrompt from './api/interactWithContract.prompt';
+// import getContractsPrompt from './api/getContracts.prompt';
+// import interactWithContractPrompt from './api/interactWithContract.prompt';
 import { selectNetworkPrompt } from './api/selectNetwork.prompt';
 import connectEnvWallet from './api/web3/connectEnvWallet';
 import { selectMainMenuPrompt } from './cli/mainMenu.prompt';
@@ -9,14 +9,14 @@ import { INetworkConfig } from './types/network.type';
 import { default as HoleskyValues } from './config/holesky.config.json';
 import { default as MainnetValues } from './config/mainnet.config.json';
 
-async function mainLoop(config: INetworkConfig) {
-  console.log('\n\n\n');
+// async function mainLoop(config: INetworkConfig) {
+//   console.log('\n\n\n');
 
-  const { abi, name, address } = await getContractsPrompt(config);
+//   const { abi, name, address } = await getContractsPrompt(config);
 
-  await interactWithContractPrompt(config, name, address, abi);
-  return mainLoop(config);
-}
+//   await interactWithContractPrompt(config, name, address, abi);
+//   return mainLoop(config);
+// }
 
 function getNetworkFromArgs(): string | undefined {
   const args = process.argv.slice(2);
@@ -39,7 +39,7 @@ function getConfigByNetwork(network: string): INetworkConfig {
 
 async function main() {
   let config: INetworkConfig;
-  
+
   // Check for network argument
   const networkArg = getNetworkFromArgs();
   if (networkArg) {
@@ -72,8 +72,9 @@ async function main() {
 
   try {
     //await mainLoop(config)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await selectMainMenuPrompt(config, walletClient!);
-  } catch (error) {
+  } catch {
     process.exit(1);
   }
 }

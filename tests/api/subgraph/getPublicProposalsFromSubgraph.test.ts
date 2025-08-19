@@ -1,6 +1,6 @@
 import { getPublicProposalsFromSubgraph } from '../../../src/api/subgraph/getPublicProposalsFromSubgraph';
 import { fetchAllPublicProposalsFromSubgraph } from '../../../src/api/subgraph/index';
-import getIpfsFile from '../../../src/api/ipfs/getIpfsFile';
+import getIpfsFile, { getIpfsFileSafe } from '../../../src/api/ipfs/getIpfsFile';
 import { INetworkConfig } from '../../../src/types/network.type';
 import { IProposalMetadata } from '../../../src/types/proposal.type';
 import { Address } from 'viem';
@@ -92,17 +92,17 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals as any);
-    mockGetIpfsFile.mockResolvedValueOnce(mockMetadata1).mockResolvedValueOnce(mockMetadata2);
+    mockGetIpfsFileSafe.mockResolvedValueOnce(mockMetadata1).mockResolvedValueOnce(mockMetadata2);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);
 
     expect(mockFetchAll).toHaveBeenCalledWith(mockConfig);
-    expect(mockGetIpfsFile).toHaveBeenCalledTimes(2);
-    expect(mockGetIpfsFile).toHaveBeenNthCalledWith(1, 'QmTest1234567890abcdef');
-    expect(mockGetIpfsFile).toHaveBeenNthCalledWith(2, 'QmTest9876543210fedcba');
+    expect(mockGetIpfsFileSafe).toHaveBeenCalledTimes(2);
+    expect(mockGetIpfsFileSafe).toHaveBeenNthCalledWith(1, 'QmTest1234567890abcdef');
+    expect(mockGetIpfsFileSafe).toHaveBeenNthCalledWith(2, 'QmTest9876543210fedcba');
 
     expect(result).toHaveLength(3);
     expect(result[0]).toEqual({
@@ -123,14 +123,14 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals as any);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, false);
 
     expect(mockFetchAll).toHaveBeenCalledWith(mockConfig);
-    expect(mockGetIpfsFile).not.toHaveBeenCalled();
+    expect(mockGetIpfsFileSafe).not.toHaveBeenCalled();
 
     expect(result).toHaveLength(3);
     expect(result[0].metadata).toBeNull();
@@ -142,14 +142,14 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     mockFetchAll.mockResolvedValue([mockSubgraphProposals[0]] as any);
-    mockGetIpfsFile.mockResolvedValue(mockMetadata1);
+    mockGetIpfsFileSafe.mockResolvedValue(mockMetadata1);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig);
 
-    expect(mockGetIpfsFile).toHaveBeenCalled();
+    expect(mockGetIpfsFileSafe).toHaveBeenCalled();
     expect(result[0].metadata).toEqual(mockMetadata1);
   });
 
@@ -170,10 +170,10 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     mockFetchAll.mockResolvedValue([mockSubgraphProposals[0], mockSubgraphProposals[1]] as any);
-    mockGetIpfsFile.mockRejectedValueOnce(new Error('IPFS fetch failed')).mockResolvedValueOnce(mockMetadata2);
+    mockGetIpfsFileSafe.mockRejectedValueOnce(new Error('IPFS fetch failed')).mockResolvedValueOnce(mockMetadata2);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);
 
@@ -186,7 +186,7 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     const proposalWithHttpUri = {
       ...mockSubgraphProposals[0],
@@ -197,7 +197,7 @@ describe('getPublicProposalsFromSubgraph', () => {
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);
 
-    expect(mockGetIpfsFile).not.toHaveBeenCalled();
+    expect(mockGetIpfsFileSafe).not.toHaveBeenCalled();
     expect(result[0].metadata).toBeNull();
   });
 
@@ -275,12 +275,12 @@ describe('getPublicProposalsFromSubgraph', () => {
     const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
       typeof fetchAllPublicProposalsFromSubgraph
     >;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals.slice(0, 2) as any);
 
     // Create promises with different resolution times
-    mockGetIpfsFile
+    mockGetIpfsFileSafe
       .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockMetadata1), 50)))
       .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockMetadata2), 10)));
 

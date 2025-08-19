@@ -2,15 +2,19 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 interface CacheData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 class JsonCache {
   private filePath: string;
   private cache: CacheData = {};
+  private networkId?: string;
 
-  constructor(fileName: string = '.cache.json') {
-    this.filePath = path.join(process.cwd(), fileName);
+  constructor(fileName: string = '.cache.json', networkId?: string) {
+    // If networkId is provided, make the cache file network-specific
+    const cacheFileName = networkId ? `.cache-${networkId}.json` : fileName;
+    this.filePath = path.join(process.cwd(), cacheFileName);
+    this.networkId = networkId;
     this.loadCache();
   }
 
@@ -19,7 +23,7 @@ class JsonCache {
     try {
       const data = await fs.readFile(this.filePath, 'utf-8');
       this.cache = JSON.parse(data);
-    } catch (error) {
+    } catch {
       // File doesn't exist or is invalid, start with empty cache
       this.cache = {};
     }
@@ -36,13 +40,13 @@ class JsonCache {
   }
 
   // Get a value from cache
-  async get<T = any>(key: string): Promise<T | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     await this.loadCache(); // Reload to get latest data
-    return this.cache[key] || null;
+    return (this.cache[key] as T) || null;
   }
 
   // Set a value in cache
-  async set(key: string, value: any): Promise<void> {
+  async set(key: string, value: unknown): Promise<void> {
     await this.loadCache(); // Reload to avoid overwriting other changes
     this.cache[key] = value;
     await this.saveCache();
@@ -91,7 +95,19 @@ class JsonCache {
   }
 }
 
-// Export a singleton instance
+// Map to hold network-specific cache instances
+const networkCaches = new Map<string, JsonCache>();
+
+// Get network-specific cache instance
+export function getNetworkCache(networkId: string): JsonCache {
+  if (!networkCaches.has(networkId)) {
+    networkCaches.set(networkId, new JsonCache(`.cache-${networkId}.json`, networkId));
+  }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return networkCaches.get(networkId)!;
+}
+
+// Export default singleton for backward compatibility
 export const cache = new JsonCache();
 
 // Also export the class for custom instances

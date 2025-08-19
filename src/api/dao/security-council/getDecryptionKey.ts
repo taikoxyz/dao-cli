@@ -1,14 +1,13 @@
-import { decodeAbiParameters, keccak256, toHex } from 'viem';
+import { decodeAbiParameters, keccak256 } from 'viem';
 import sodium from 'libsodium-wrappers';
-export type { KeyPair } from 'libsodium-wrappers';
-import { Hex } from 'viem';
+// export type { KeyPair } from 'libsodium-wrappers';
 import { EncryptedProposalMetadata, ProposalMetadata, RawActionListAbi } from '../../../types/proposal.type';
 import { decryptProposal, decryptSymmetricKey } from '../../encryption';
 import { privateKeyToAccount } from 'viem/accounts';
 import getEnvPrivateKey from '../../web3/getEnvPrivateKey';
 import { INetworkConfig } from '../../../types/network.type';
 
-export function hexToUint8Array(data: Hex): Uint8Array {
+export function hexToUint8Array(data: `0x${string}`): Uint8Array {
   const result: number[] = [];
   if (data.length % 2 != 0) throw new Error('Received an hex value with odd length');
   const hex = data.startsWith('0x') ? data.slice(2) : data;
@@ -41,10 +40,10 @@ export default async function getDecryptionKey(
     }
 
     // Create the hash for logging/debugging (matching your original logic)
-    const hash = keccak256(toHex(DETERMINISTIC_EMERGENCY_PAYLOAD));
-    const renderHash = Array.from({ length: 4 }, (_, i) =>
-      hash.slice(i * Math.floor(hash.length / 4), (i + 1) * Math.floor(hash.length / 4)),
-    ).join(' ');
+    // const hash = keccak256(toHex(DETERMINISTIC_EMERGENCY_PAYLOAD));
+    // const renderHash = Array.from({ length: 4 }, (_, i) =>
+    //   hash.slice(i * Math.floor(hash.length / 4), (i + 1) * Math.floor(hash.length / 4)),
+    // ).join(' ');
 
     // Sign the deterministic message
     const privateSignature = await account.signMessage({
@@ -85,6 +84,35 @@ export async function decrypt(config: INetworkConfig, encryptedMetadata: Encrypt
       proposalSymKey,
     );
     const privateRawActions = result.rawActions;
+    // const privateRawMetadata = result.rawMetadata;
+    const privateMetadata = result.metadata as ProposalMetadata;
+    const decoded = decodeAbiParameters(RawActionListAbi, privateRawActions);
+    if (!decoded[0]) throw new Error("The actions parameter can't be recovered");
+
+    // const privateActions = decoded[0];
+
+    return privateMetadata;
+  } catch (err) {
+    console.error('Decryption failed:', err);
+  }
+}
+
+export async function decryptProposalForExecution(
+  config: INetworkConfig,
+  encryptedMetadata: EncryptedProposalMetadata,
+) {
+  const { privateKey, publicKey } = await getDecryptionKey(config);
+  const pubKeys = encryptedMetadata.encrypted.symmetricKeys.map((pk) => hexToUint8Array(pk));
+  try {
+    const proposalSymKey = decryptSymmetricKey(pubKeys, { privateKey, publicKey });
+    const result = decryptProposal(
+      {
+        metadata: encryptedMetadata.encrypted.metadata,
+        actions: encryptedMetadata.encrypted.actions,
+      },
+      proposalSymKey,
+    );
+    const privateRawActions = result.rawActions;
     const privateRawMetadata = result.rawMetadata;
     const privateMetadata = result.metadata as ProposalMetadata;
     const decoded = decodeAbiParameters(RawActionListAbi, privateRawActions);
@@ -92,8 +120,14 @@ export async function decrypt(config: INetworkConfig, encryptedMetadata: Encrypt
 
     const privateActions = decoded[0];
 
-    return privateMetadata;
+    return {
+      metadata: privateMetadata,
+      actions: privateActions,
+      rawMetadata: privateRawMetadata,
+      rawActions: privateRawActions,
+    };
   } catch (err) {
     console.error('Decryption failed:', err);
+    throw err;
   }
 }

@@ -30,7 +30,7 @@ export default async function getPublicProposal(count: number, config: INetworkC
     if (!metadata) {
       console.warn(`Could not fetch metadata for public proposal ${count}, continuing without it`);
     }
-    
+
     return {
       executed: res[0],
       approvals: res[1],

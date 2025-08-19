@@ -87,9 +87,9 @@ describe('getEmergencyProposals', () => {
     } as any);
 
     mockGetEmergencyProposal
-      .mockResolvedValueOnce({ id: 0, title: 'Emergency 0' } as any)
+      .mockResolvedValueOnce({ proposalId: 0, title: 'Emergency 0' } as any)
       .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ id: 2, title: 'Emergency 2' } as any)
+      .mockResolvedValueOnce({ proposalId: 2, title: 'Emergency 2' } as any)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce({ id: 4, title: 'Emergency 4' } as any);
 
@@ -98,8 +98,8 @@ describe('getEmergencyProposals', () => {
     expect(mockGetEmergencyProposal).toHaveBeenCalledTimes(5);
     expect(result).toEqual([
       { id: 4, title: 'Emergency 4' },
-      { id: 2, title: 'Emergency 2' },
-      { id: 0, title: 'Emergency 0' },
+      { proposalId: 2, title: 'Emergency 2' },
+      { proposalId: 0, title: 'Emergency 0' },
     ]);
   });
 
@@ -142,8 +142,8 @@ describe('getEmergencyProposals', () => {
 
     expect(mockGetEmergencyProposal).toHaveBeenCalledTimes(50);
     expect(result).toHaveLength(50);
-    expect(result![0]).toEqual({ id: 49, title: 'Emergency 49', executed: false, approvals: 1 });
-    expect(result![49]).toEqual({ id: 0, title: 'Emergency 0', executed: true, approvals: 0 });
+    expect(result?.[0]).toEqual({ id: 49, title: 'Emergency 49', executed: false, approvals: 1 });
+    expect(result?.[49]).toEqual({ id: 0, title: 'Emergency 0', executed: true, approvals: 0 });
   });
 
   it('should handle errors and log them', async () => {
@@ -170,9 +170,9 @@ describe('getEmergencyProposals', () => {
     } as any);
 
     mockGetEmergencyProposal
-      .mockResolvedValueOnce({ id: 0, title: 'Emergency 0' } as any)
+      .mockResolvedValueOnce({ proposalId: 0, title: 'Emergency 0' } as any)
       .mockRejectedValueOnce(new Error('Proposal fetch failed'))
-      .mockResolvedValueOnce({ id: 2, title: 'Emergency 2' } as any);
+      .mockResolvedValueOnce({ proposalId: 2, title: 'Emergency 2' } as any);
 
     const result = await getEmergencyProposals(mockConfig);
 
@@ -199,7 +199,7 @@ describe('getEmergencyProposals', () => {
             setTimeout(
               () =>
                 resolve({
-                  id: index,
+                  proposalId: index,
                   title: `Emergency ${index}`,
                   executed: false,
                   approvals: 1,
@@ -218,8 +218,8 @@ describe('getEmergencyProposals', () => {
     // Sequential would take sum of delays (80ms)
     expect(endTime - startTime).toBeLessThan(70);
     expect(result).toHaveLength(4);
-    expect(result![0].id).toBe(3);
-    expect(result![3].id).toBe(0);
+    expect(result?.[0]?.proposalId).toBe(3);
+    expect(result?.[3]?.proposalId).toBe(0);
   });
 
   it('should handle bigint conversion properly', async () => {

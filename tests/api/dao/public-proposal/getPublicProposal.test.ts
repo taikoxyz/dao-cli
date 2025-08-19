@@ -1,6 +1,6 @@
 import getPublicProposal from '../../../../src/api/dao/public-proposal/getPublicProposal';
 import { getPublicClient } from '../../../../src/api/viem';
-import getIpfsFile from '../../../../src/api/ipfs/getIpfsFile';
+import getIpfsFile, { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFile';
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { Address } from 'viem';
 
@@ -68,7 +68,7 @@ describe('getPublicProposal', () => {
 
   it('should fetch and return proposal data with metadata', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     const mockReadContract = jest
       .fn()
@@ -79,7 +79,7 @@ describe('getPublicProposal', () => {
       readContract: mockReadContract,
     } as any);
 
-    mockGetIpfsFile.mockResolvedValue(mockMetadata);
+    mockGetIpfsFileSafe.mockResolvedValue(mockMetadata);
 
     const result = await getPublicProposal(0, mockConfig);
 
@@ -97,7 +97,7 @@ describe('getPublicProposal', () => {
       args: ['0x00000001'],
     });
 
-    expect(mockGetIpfsFile).toHaveBeenCalledWith('QmTest123');
+    expect(mockGetIpfsFileSafe).toHaveBeenCalledWith('QmTest123');
 
     expect(result).toEqual({
       executed: true,
@@ -113,7 +113,7 @@ describe('getPublicProposal', () => {
 
   it('should handle IPFS URI without ipfs:// prefix', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     const proposalDataWithoutPrefix = [
       ...mockProposalData.slice(0, 4),
@@ -130,11 +130,11 @@ describe('getPublicProposal', () => {
       readContract: mockReadContract,
     } as any);
 
-    mockGetIpfsFile.mockResolvedValue(mockMetadata);
+    mockGetIpfsFileSafe.mockResolvedValue(mockMetadata);
 
     const result = await getPublicProposal(1, mockConfig);
 
-    expect(mockGetIpfsFile).toHaveBeenCalledWith('QmTest123');
+    expect(mockGetIpfsFileSafe).toHaveBeenCalledWith('QmTest123');
     expect(result?.metadataURI).toBe('QmTest123');
   });
 
@@ -154,9 +154,9 @@ describe('getPublicProposal', () => {
     expect(result).toBeUndefined();
   });
 
-  it('should handle IPFS fetch errors', async () => {
+  it('should handle IPFS fetch errors gracefully', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+    const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
     const mockReadContract = jest.fn().mockResolvedValueOnce('0x00000003').mockResolvedValueOnce(mockProposalData);
 
@@ -164,12 +164,13 @@ describe('getPublicProposal', () => {
       readContract: mockReadContract,
     } as any);
 
-    mockGetIpfsFile.mockRejectedValue(new Error('IPFS fetch failed'));
+    mockGetIpfsFileSafe.mockResolvedValue(null); // IPFS fetch failed but returns null gracefully
 
     const result = await getPublicProposal(3, mockConfig);
 
-    expect(console.error).toHaveBeenCalledWith('Error fetching public proposal 3:', expect.any(Error));
-    expect(result).toBeUndefined();
+    expect(result).toBeDefined(); // Should return proposal data without metadata
+    expect(result?.metadataURI).toBe('ipfs://QmTest123');
+    expect(result?.title).toBeUndefined(); // No metadata loaded
   });
 
   it('should handle different proposal counts', async () => {

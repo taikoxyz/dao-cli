@@ -265,14 +265,17 @@ describe('Encryption Integration', () => {
       const councilPubKeys = [councilMember1.publicKey, councilMember2.publicKey, councilMember3.publicKey];
 
       // Encrypt proposal
-      const { encrypted, symmetricKey } = encryptProposal(JSON.stringify(proposalMetadata), proposalActions);
+      const { encrypted: _encrypted, symmetricKey } = encryptProposal(
+        JSON.stringify(proposalMetadata),
+        proposalActions,
+      );
 
       // Encrypt symmetric key for security council
       const encryptedSymKeys = encryptSymmetricKey(symmetricKey, councilPubKeys);
 
       // Simulate council member 2 decrypting the proposal
       const decryptedSymKey = decryptSymmetricKey(encryptedSymKeys, councilMember2);
-      const decryptedProposal = decryptProposal(encrypted, decryptedSymKey);
+      const decryptedProposal = decryptProposal(_encrypted, decryptedSymKey);
 
       expect(decryptedProposal.metadata).toEqual(proposalMetadata);
       expect(decryptedProposal.rawActions).toEqual(proposalActions);
@@ -290,7 +293,7 @@ describe('Encryption Integration', () => {
       const unauthorizedMember = generateKeyPair();
 
       // Encrypt proposal
-      const { encrypted, symmetricKey } = encryptProposal(JSON.stringify(proposalMetadata), proposalActions);
+      const { symmetricKey } = encryptProposal(JSON.stringify(proposalMetadata), proposalActions);
       const encryptedSymKeys = encryptSymmetricKey(symmetricKey, councilPubKeys);
 
       // Unauthorized member cannot decrypt

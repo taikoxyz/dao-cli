@@ -7,7 +7,7 @@ dotenv.config();
 
 async function main() {
   console.info('Testing IPFS pinning configuration...\n');
-  
+
   // Check which service is configured
   if (process.env.PINATA_JWT) {
     console.info('Using Pinata for IPFS pinning');
@@ -18,9 +18,9 @@ async function main() {
     console.info('\nSee .env.example for more details.');
     process.exit(1);
   }
-  
+
   const success = await testIpfsPinning();
-  
+
   if (success) {
     console.info('\nIPFS configuration is working correctly!');
     console.info('You can now create proposals that will be properly pinned to IPFS.');
@@ -33,7 +33,7 @@ async function main() {
 
 // Run if called directly
 if (require.main === module) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Unexpected error:', error);
     process.exit(1);
   });

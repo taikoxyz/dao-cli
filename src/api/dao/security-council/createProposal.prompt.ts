@@ -1,3 +1,4 @@
+/* global URL */
 import { input, select, confirm } from '@inquirer/prompts';
 import { WalletClient } from 'viem';
 import { INetworkConfig } from '../../../types/network.type';
@@ -5,10 +6,7 @@ import { getPublicClient } from '../../viem';
 import { createProposal, ProposalMetadata, ProposalAction, encodeAction } from './createProposal';
 import { ABIs } from '../../../abi';
 
-export async function createProposalPrompt(
-  config: INetworkConfig,
-  walletClient: WalletClient
-): Promise<void> {
+export async function createProposalPrompt(config: INetworkConfig, walletClient: WalletClient): Promise<void> {
   try {
     console.info('\n📝 Create a New Proposal\n');
 
@@ -38,7 +36,7 @@ export async function createProposalPrompt(
 
     // Collect metadata
     console.info('\n--- Proposal Metadata ---\n');
-    
+
     const title = await input({
       message: 'Proposal title:',
       validate: (value) => {
@@ -94,7 +92,7 @@ export async function createProposalPrompt(
           },
         });
         resources.push({ name: resourceName, url: resourceUrl });
-        
+
         addMore = await confirm({
           message: 'Add another resource?',
           default: false,
@@ -178,18 +176,33 @@ export async function createProposalPrompt(
           const abi = ABIs[contractType as keyof typeof ABIs];
 
           const writeFunctions = abi.filter(
-            (item: any) => item.type === 'function' && item.stateMutability !== 'view' && item.stateMutability !== 'pure'
+            (item: unknown) =>
+              typeof item === 'object' &&
+              item !== null &&
+              'type' in item &&
+              item.type === 'function' &&
+              'stateMutability' in item &&
+              item.stateMutability !== 'view' &&
+              item.stateMutability !== 'pure',
           );
 
           const functionName = await select({
             message: 'Select function to call:',
-            choices: writeFunctions.map((func: any) => ({
-              name: `${func.name}(${func.inputs.map((i: any) => i.type).join(', ')})`,
-              value: func.name,
-            })),
+            choices: writeFunctions.map((func: unknown) => {
+              if (typeof func === 'object' && func !== null && 'name' in func && 'inputs' in func) {
+                const inputs = Array.isArray(func.inputs) ? func.inputs : [];
+                return {
+                  name: `${func.name}(${inputs.map((i: unknown) => (typeof i === 'object' && i !== null && 'type' in i ? i.type : 'unknown')).join(', ')})`,
+                  value: func.name,
+                };
+              }
+              return { name: 'Unknown function', value: 'unknown' };
+            }),
           });
 
-          const selectedFunction = writeFunctions.find((f: any) => f.name === functionName);
+          const selectedFunction = writeFunctions.find(
+            (f: unknown) => typeof f === 'object' && f !== null && 'name' in f && f.name === functionName,
+          );
           const args = [];
 
           if (selectedFunction && selectedFunction.inputs.length > 0) {
@@ -204,7 +217,7 @@ export async function createProposalPrompt(
                   return true;
                 },
               });
-              
+
               // Convert value based on type
               if (paramInput.type.includes('uint') || paramInput.type.includes('int')) {
                 args.push(BigInt(value));
@@ -216,12 +229,7 @@ export async function createProposalPrompt(
             }
           }
 
-          const action = encodeAction(
-            contractAddress,
-            abi,
-            functionName,
-            args
-          );
+          const action = encodeAction(contractAddress, abi, functionName as string, args as any);
           actions.push(action);
         } else if (actionType === 'raw') {
           const to = await input({
@@ -280,7 +288,7 @@ export async function createProposalPrompt(
       });
 
       if (!useDefaultDestination) {
-        destinationPlugin = await input({
+        destinationPlugin = (await input({
           message: 'Enter destination plugin address:',
           validate: (value) => {
             if (!value.match(/^0x[a-fA-F0-9]{40}$/)) {
@@ -288,15 +296,9 @@ export async function createProposalPrompt(
             }
             return true;
           },
-        }) as `0x${string}`;
+        })) as `0x${string}`;
       }
     }
-
-    // Auto-approve option
-    const autoApprove = await confirm({
-      message: 'Do you want to automatically approve this proposal after creation?',
-      default: true,
-    });
 
     // Summary before submission
     console.info('\n--- Proposal Summary ---');
@@ -311,7 +313,6 @@ export async function createProposalPrompt(
       console.info(`Resources: ${metadata.resources.length} link(s)`);
     }
     console.info(`Actions: ${actions.length} action(s)`);
-    console.info(`Auto-approve: ${autoApprove ? 'Yes' : 'No'}`);
 
     const confirmSubmit = await confirm({
       message: '\nDo you want to submit this proposal?',
@@ -326,7 +327,7 @@ export async function createProposalPrompt(
     // Create the proposal
     console.info('\n🔄 Creating proposal...');
     const publicClient = getPublicClient(config);
-    
+
     const txHash = await createProposal(
       config,
       walletClient,
@@ -334,14 +335,13 @@ export async function createProposalPrompt(
       metadata,
       actions,
       destinationPlugin,
-      autoApprove,
-      proposalType as 'standard' | 'emergency'
+      false, // Never auto-approve
+      proposalType as 'standard' | 'emergency',
     );
 
     console.info(`\n✅ Proposal created successfully!`);
     console.info(`Transaction hash: ${txHash}`);
     console.info(`View on explorer: ${config.urls.explorer}tx/${txHash}`);
-
   } catch (error) {
     console.error('\n❌ Failed to create proposal:', error);
     throw error;

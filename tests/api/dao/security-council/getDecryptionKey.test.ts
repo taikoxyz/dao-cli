@@ -22,7 +22,7 @@ const mockGetEnvPrivateKey = getEnvPrivateKey as jest.MockedFunction<typeof getE
 const mockPrivateKeyToAccount = privateKeyToAccount as jest.MockedFunction<typeof privateKeyToAccount>;
 const mockKeccak256 = keccak256 as jest.MockedFunction<typeof keccak256>;
 const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
-const mockSodium = sodium as jest.Mocked<typeof sodium>;
+// const _mockSodium = sodium as jest.Mocked<typeof sodium>;
 
 // Mock sodium.crypto_scalarmult_base specifically
 (sodium as any).crypto_scalarmult_base = jest.fn();
@@ -31,7 +31,7 @@ const mockDecryptProposal = decryptProposal as jest.MockedFunction<typeof decryp
 
 describe('getDecryptionKey module', () => {
   let mockConfig: INetworkConfig;
-  let mockAccount: any;
+  let mockAccount: Record<string, unknown>;
 
   beforeEach(() => {
     // Mock console methods
@@ -45,15 +45,15 @@ describe('getDecryptionKey module', () => {
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -66,7 +66,7 @@ describe('getDecryptionKey module', () => {
     mockGetEnvPrivateKey.mockImplementation(
       () => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
     );
-    mockPrivateKeyToAccount.mockImplementation(() => mockAccount);
+    mockPrivateKeyToAccount.mockImplementation(() => mockAccount as any);
   });
 
   afterEach(() => {
@@ -143,7 +143,7 @@ describe('getDecryptionKey module', () => {
     beforeEach(() => {
       mockToHex.mockReturnValue('0xabcdef1234567890');
       mockKeccak256.mockReturnValueOnce('0xhashedmessage1234567890').mockReturnValueOnce('0xhashedsignature1234567890');
-      mockAccount.signMessage.mockResolvedValue('0xsignature1234567890');
+      (mockAccount.signMessage as jest.Mock).mockResolvedValue('0xsignature1234567890');
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(new Uint8Array([1, 2, 3, 4, 5]));
     });
 
@@ -164,21 +164,21 @@ describe('getDecryptionKey module', () => {
     });
 
     it('should handle user rejection of signature', async () => {
-      mockAccount.signMessage.mockRejectedValue(new Error('User rejected request'));
+      (mockAccount.signMessage as jest.Mock).mockRejectedValue(new Error('User rejected request'));
 
       await expect(getDecryptionKey(mockConfig)).rejects.toThrow('Signature canceled by user');
       expect(console.error).toHaveBeenCalledWith('User canceled the signature');
     });
 
     it('should handle user denied signature', async () => {
-      mockAccount.signMessage.mockRejectedValue(new Error('Transaction denied by user'));
+      (mockAccount.signMessage as jest.Mock).mockRejectedValue(new Error('Transaction denied by user'));
 
       await expect(getDecryptionKey(mockConfig)).rejects.toThrow('Signature canceled by user');
       expect(console.error).toHaveBeenCalledWith('User canceled the signature');
     });
 
     it('should handle general signature errors', async () => {
-      mockAccount.signMessage.mockRejectedValue(new Error('Network error'));
+      (mockAccount.signMessage as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await expect(getDecryptionKey(mockConfig)).rejects.toThrow('Could not retrieve signature');
       expect(console.error).toHaveBeenCalledWith('Failed to retrieve signature:', 'Network error');
@@ -206,7 +206,7 @@ describe('getDecryptionKey module', () => {
   });
 
   describe.skip('decrypt function', () => {
-    const mockEncryptedMetadata: any = {
+    const mockEncryptedMetadata: Record<string, unknown> = {
       encrypted: {
         metadata: 'encryptedMetadataHex',
         actions: 'encryptedActionsHex',
@@ -218,20 +218,20 @@ describe('getDecryptionKey module', () => {
       // Mock getDecryptionKey return value
       mockToHex.mockReturnValue('0xabcdef1234567890');
       mockKeccak256.mockReturnValueOnce('0xhashedmessage').mockReturnValueOnce('0xhashedsignature');
-      mockAccount.signMessage.mockResolvedValue('0xsignature1234567890');
+      (mockAccount.signMessage as jest.Mock).mockResolvedValue('0xsignature1234567890');
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(new Uint8Array([1, 2, 3, 4, 5]));
     });
 
     it('should successfully decrypt proposal metadata', async () => {
       const mockSymmetricKey = new Uint8Array([1, 2, 3, 4]);
-      const mockDecryptedResult: any = {
+      const mockDecryptedResult: Record<string, unknown> = {
         metadata: { title: 'Decrypted Proposal', description: 'Decrypted description' },
         rawMetadata: 'rawMetadataHex',
         rawActions: new Uint8Array([0x12, 0x34]),
       };
 
       mockDecryptSymmetricKey.mockReturnValue(mockSymmetricKey);
-      mockDecryptProposal.mockReturnValue(mockDecryptedResult);
+      mockDecryptProposal.mockReturnValue(mockDecryptedResult as any);
 
       // Mock decodeAbiParameters
       const mockDecodeAbiParameters = jest.fn().mockReturnValue([[{ to: '0x123', value: '1000', data: '0xabc' }]]);
@@ -240,7 +240,7 @@ describe('getDecryptionKey module', () => {
         decodeAbiParameters: mockDecodeAbiParameters,
       }));
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       expect(mockDecryptSymmetricKey).toHaveBeenCalledWith(
         expect.any(Array),
@@ -265,7 +265,7 @@ describe('getDecryptionKey module', () => {
         throw decryptionError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', decryptionError);
@@ -273,14 +273,14 @@ describe('getDecryptionKey module', () => {
 
     it('should handle invalid actions parameter', async () => {
       const mockSymmetricKey = new Uint8Array([1, 2, 3, 4]);
-      const mockDecryptedResult: any = {
+      const mockDecryptedResult: Record<string, unknown> = {
         metadata: { title: 'Test' },
         rawMetadata: 'rawMetadata',
         rawActions: new Uint8Array([0x12, 0x34]),
       };
 
       mockDecryptSymmetricKey.mockReturnValue(mockSymmetricKey);
-      mockDecryptProposal.mockReturnValue(mockDecryptedResult);
+      mockDecryptProposal.mockReturnValue(mockDecryptedResult as any);
 
       // Mock decodeAbiParameters to return empty/invalid result
       const mockDecodeAbiParameters = jest.fn().mockReturnValue([undefined]);
@@ -289,7 +289,7 @@ describe('getDecryptionKey module', () => {
         decodeAbiParameters: mockDecodeAbiParameters,
       }));
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', expect.any(Error));
@@ -304,7 +304,7 @@ describe('getDecryptionKey module', () => {
         rawActions: new Uint8Array([0x12, 0x34]),
       } as any);
 
-      await decrypt(mockConfig, mockEncryptedMetadata);
+      await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       // Verify that symmetric keys were converted from hex
       expect(mockDecryptSymmetricKey).toHaveBeenCalledWith(
@@ -319,7 +319,7 @@ describe('getDecryptionKey module', () => {
         throw symmetricKeyError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', symmetricKeyError);
@@ -334,7 +334,7 @@ describe('getDecryptionKey module', () => {
         throw proposalDecryptionError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', proposalDecryptionError);
@@ -343,7 +343,7 @@ describe('getDecryptionKey module', () => {
 
   describe.skip('integration scenarios', () => {
     it('should work with real-like encrypted metadata', async () => {
-      const realishMetadata: any = {
+      const realishMetadata: Record<string, unknown> = {
         encrypted: {
           metadata: '0xencryptedmetadata1234567890abcdef',
           actions: '0xencryptedactions1234567890abcdef',
@@ -357,7 +357,7 @@ describe('getDecryptionKey module', () => {
       // Setup successful mocks
       mockToHex.mockReturnValue('0xhashedpayload');
       mockKeccak256.mockReturnValueOnce('0xhashedpayload').mockReturnValueOnce('0xhashedsignature');
-      mockAccount.signMessage.mockResolvedValue('0xsignature');
+      (mockAccount.signMessage as jest.Mock).mockResolvedValue('0xsignature');
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(new Uint8Array([1, 2, 3]));
 
       const mockSymmetricKey = new Uint8Array([4, 5, 6]);
@@ -368,7 +368,7 @@ describe('getDecryptionKey module', () => {
         rawActions: new Uint8Array([0xaa, 0xbb, 0xcc]),
       } as any);
 
-      const result = await decrypt(mockConfig, realishMetadata);
+      const result = await decrypt(mockConfig, realishMetadata as any);
 
       expect(result).toEqual({
         title: 'Real Proposal',
@@ -380,7 +380,7 @@ describe('getDecryptionKey module', () => {
       // Test the complete workflow from config to derived keys
       mockToHex.mockReturnValue('0xpayloadhex');
       mockKeccak256.mockReturnValueOnce('0xhashedpayload').mockReturnValueOnce('0xhashedsignature');
-      mockAccount.signMessage.mockResolvedValue('0xvalidsignature');
+      (mockAccount.signMessage as jest.Mock).mockResolvedValue('0xvalidsignature');
 
       const expectedPublicKey = new Uint8Array([10, 20, 30]);
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(expectedPublicKey);

@@ -1,9 +1,10 @@
+/* global Response */
 import {
   getPublicProposalsFromSubgraph,
   getPublicProposalFromSubgraph,
 } from '../../../src/api/subgraph/publicProposals';
 import { INetworkConfig } from '../../../src/types/network.type';
-import getIpfsFile from '../../../src/api/ipfs/getIpfsFile';
+import getIpfsFile, { getIpfsFileSafe } from '../../../src/api/ipfs/getIpfsFile';
 
 // Mock dependencies
 jest.mock('../../../src/api/ipfs/getIpfsFile');
@@ -12,6 +13,7 @@ jest.mock('../../../src/api/ipfs/getIpfsFile');
 global.fetch = jest.fn();
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
+const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 
 describe('Public Proposals Subgraph API', () => {
   let mockConfig: INetworkConfig;
@@ -27,15 +29,15 @@ describe('Public Proposals Subgraph API', () => {
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -43,8 +45,10 @@ describe('Public Proposals Subgraph API', () => {
     jest.spyOn(console, 'error').mockImplementation();
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
+  beforeEach(() => {
+    mockFetch.mockClear();
+    mockGetIpfsFile.mockClear();
+    mockGetIpfsFileSafe.mockClear();
   });
 
   describe('getPublicProposalFromSubgraph', () => {
@@ -84,7 +88,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockResolvedValueOnce({
+      mockGetIpfsFileSafe.mockResolvedValue({
         title: 'Test Proposal',
         description: 'Test Description',
       });
@@ -99,9 +103,9 @@ describe('Public Proposals Subgraph API', () => {
     });
 
     it('should handle missing subgraph endpoint', async () => {
-      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
+      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(getPublicProposalFromSubgraph(1, configWithoutSubgraph)).rejects.toThrow(
+      await expect(getPublicProposalFromSubgraph(1, configWithoutSubgraph as any)).rejects.toThrow(
         'Subgraph endpoint is not defined in network config',
       );
     });
@@ -207,7 +211,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockRejectedValueOnce(new Error('IPFS fetch failed'));
+      mockGetIpfsFileSafe.mockResolvedValueOnce(undefined);
 
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
@@ -245,12 +249,14 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
+      mockGetIpfsFileSafe.mockResolvedValueOnce(undefined);
+
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
       expect(result!.metadataURI).toBe('https://example.com');
-      // getIpfsFile is called with non-IPFS URLs but will fail (caught in try/catch)
-      expect(mockGetIpfsFile).toHaveBeenCalledWith('https://example.com');
+      // getIpfsFileSafe is called with non-IPFS URLs but will fail (caught in try/catch)
+      expect(mockGetIpfsFileSafe).toHaveBeenCalledWith('https://example.com');
     });
 
     it('should handle only proposal mixin data', async () => {
@@ -275,7 +281,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockResolvedValueOnce({
+      mockGetIpfsFileSafe.mockResolvedValue({
         title: 'Test Proposal',
         description: 'Test Description',
       });
@@ -310,7 +316,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockResolvedValueOnce({
+      mockGetIpfsFileSafe.mockResolvedValue({
         title: 'Test Proposal',
         description: 'Test Description',
       });
@@ -392,7 +398,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile
+      mockGetIpfsFileSafe
         .mockResolvedValueOnce({
           title: 'Test Proposal 1',
           description: 'Test Description 1',
@@ -448,7 +454,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockResolvedValueOnce({
+      mockGetIpfsFileSafe.mockResolvedValue({
         title: 'IPFS Proposal',
         description: 'IPFS Description',
       });
@@ -491,7 +497,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile.mockResolvedValueOnce({ title: 'Proposal 1' }).mockResolvedValueOnce({ title: 'Proposal 2' });
+      mockGetIpfsFileSafe.mockResolvedValue({ title: 'Proposal 1' }).mockResolvedValueOnce({ title: 'Proposal 2' });
 
       const result = await getPublicProposalsFromSubgraph(mockConfig);
 

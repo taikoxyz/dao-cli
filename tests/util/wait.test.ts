@@ -58,7 +58,6 @@ describe('wait', () => {
     });
 
     it('should resolve exactly at specified time', async () => {
-      const startTime = Date.now();
       const promise = wait(2000);
 
       jest.advanceTimersByTime(2000);
@@ -166,7 +165,7 @@ describe('wait', () => {
     });
 
     it('should handle Infinity time values', async () => {
-      const promise = wait(Infinity);
+      wait(Infinity);
 
       expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), Infinity);
 

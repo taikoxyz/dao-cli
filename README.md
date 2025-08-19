@@ -110,12 +110,12 @@ pnpm format  # Format code with Prettier
     - [x] Delegate profile exploration
     - [x] Voting power visualization
 
-- [ ] **v1.2.0 - Security Council Operations**
+- [x] **v1.2.0 - Security Council Operations**
     - [x] Comprehensive documentation
     - [x] MIT License adoption
     - [x] Proposal creation for SC members (standard and emergency)
     - [x] IPFS metadata pinning integration
-    - [ ] Proposal approval workflow
+    - [x] Proposal approval workflow
 
 - [ ] **v1.3.0 - Delegation & Governance**
     - [ ] Secure wallet connectivity without explicit private keys

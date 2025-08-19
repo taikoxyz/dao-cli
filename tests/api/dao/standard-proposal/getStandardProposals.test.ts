@@ -135,8 +135,8 @@ describe('getStandardProposals', () => {
 
     expect(mockGetStandardProposal).toHaveBeenCalledTimes(100);
     expect(result).toHaveLength(100);
-    expect(result![0]).toEqual({ id: 99, title: 'Proposal 99' });
-    expect(result![99]).toEqual({ id: 0, title: 'Proposal 0' });
+    expect(result?.[0]).toEqual({ id: 99, title: 'Proposal 99' });
+    expect(result?.[99]).toEqual({ id: 0, title: 'Proposal 0' });
   });
 
   it('should handle errors and log them', async () => {
@@ -188,7 +188,9 @@ describe('getStandardProposals', () => {
     delays.forEach((delay, index) => {
       mockGetStandardProposal.mockImplementationOnce(
         () =>
-          new Promise((resolve) => setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay)),
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay),
+          ),
       );
     });
 
