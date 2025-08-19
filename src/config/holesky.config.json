@@ -1,7 +1,6 @@
 {
   "network": "holesky",
   "chainId": 17000,
-  "ipfsGateway": "https://dweb.link/ipfs",
   "urls": {
     "rpc": "https://holesky.drpc.org",
     "explorer": "https://holesky.etherscan.io/"
