@@ -141,8 +141,8 @@ describe('viem client utilities', () => {
     });
 
     it('should create wallet client for mainnet network', () => {
-      const configWithPrivateKey = { 
-        ...mockConfig, 
+      const configWithPrivateKey = {
+        ...mockConfig,
         network: 'mainnet',
         privateKey,
         urls: {
@@ -164,8 +164,8 @@ describe('viem client utilities', () => {
     });
 
     it('should default to mainnet for unknown networks', () => {
-      const configWithPrivateKey = { 
-        ...mockConfig, 
+      const configWithPrivateKey = {
+        ...mockConfig,
         network: 'unknown-network',
         privateKey,
       };
@@ -191,8 +191,8 @@ describe('viem client utilities', () => {
 
     it('should use custom RPC URL with wallet client', () => {
       const customRpcUrl = 'https://custom-wallet-rpc.example.com';
-      const configWithPrivateKey = { 
-        ...mockConfig, 
+      const configWithPrivateKey = {
+        ...mockConfig,
         privateKey,
         urls: {
           ...mockConfig.urls,
@@ -215,7 +215,7 @@ describe('viem client utilities', () => {
       expect(mockCreatePublicClient).toHaveBeenCalledWith(
         expect.objectContaining({
           chain: holesky,
-        })
+        }),
       );
     });
 
@@ -227,7 +227,7 @@ describe('viem client utilities', () => {
       expect(mockCreatePublicClient).toHaveBeenCalledWith(
         expect.objectContaining({
           chain: mainnet,
-        })
+        }),
       );
     });
 
@@ -240,7 +240,7 @@ describe('viem client utilities', () => {
       expect(mockCreatePublicClient).toHaveBeenCalledWith(
         expect.objectContaining({
           chain: mainnet,
-        })
+        }),
       );
     });
   });
@@ -256,14 +256,14 @@ describe('viem client utilities', () => {
       expect(mockCreatePublicClient).toHaveBeenCalledWith(
         expect.objectContaining({
           transport: mockTransport,
-        })
+        }),
       );
     });
 
     it('should create http transport with correct URL for wallet client', () => {
       const rpcUrl = 'https://test-wallet-rpc.example.com';
-      const configWithPrivateKey = { 
-        ...mockConfig, 
+      const configWithPrivateKey = {
+        ...mockConfig,
         privateKey: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Address,
         urls: {
           ...mockConfig.urls,
@@ -277,7 +277,7 @@ describe('viem client utilities', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           transport: mockTransport,
-        })
+        }),
       );
     });
   });
@@ -293,7 +293,7 @@ describe('viem client utilities', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           account: mockAccount,
-        })
+        }),
       );
     });
 

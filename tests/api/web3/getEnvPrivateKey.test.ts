@@ -10,7 +10,7 @@ describe('getEnvPrivateKey', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -67,7 +67,7 @@ describe('getEnvPrivateKey', () => {
     it('should return holesky key even when mainnet key is also set', () => {
       const holeskyKey = '0x1111111111111111111111111111111111111111111111111111111111111111';
       const mainnetKey = '0x2222222222222222222222222222222222222222222222222222222222222222';
-      
+
       process.env.HOLESKY_PRIVATE_KEY = holeskyKey;
       process.env.MAINNET_PRIVATE_KEY = mainnetKey;
 
@@ -108,7 +108,7 @@ describe('getEnvPrivateKey', () => {
     it('should return mainnet key even when holesky key is also set', () => {
       const holeskyKey = '0x1111111111111111111111111111111111111111111111111111111111111111';
       const mainnetKey = '0x2222222222222222222222222222222222222222222222222222222222222222';
-      
+
       process.env.HOLESKY_PRIVATE_KEY = holeskyKey;
       process.env.MAINNET_PRIVATE_KEY = mainnetKey;
 
@@ -188,7 +188,7 @@ describe('getEnvPrivateKey', () => {
     it('should correctly switch between networks', () => {
       const holeskyKey = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       const mainnetKey = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-      
+
       process.env.HOLESKY_PRIVATE_KEY = holeskyKey;
       process.env.MAINNET_PRIVATE_KEY = mainnetKey;
 

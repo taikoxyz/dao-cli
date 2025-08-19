@@ -18,11 +18,11 @@ describe('getPublicProposals', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods
     jest.spyOn(console, 'info').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -48,7 +48,7 @@ describe('getPublicProposals', () => {
     };
 
     mockGetPublicClient.mockReturnValue(mockClient);
-    
+
     // Mock ABIs
     (ABIs as any) = {
       OptimisticTokenVotingPlugin: [
@@ -71,38 +71,38 @@ describe('getPublicProposals', () => {
     it('should fetch and return public proposals', async () => {
       const proposalCount = 3n;
       const mockProposals: any[] = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
-          title: 'Proposal 2', 
+        {
+          id: 1,
+          title: 'Proposal 2',
           description: 'Description 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test2',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
@@ -144,16 +144,16 @@ describe('getPublicProposals', () => {
 
     it('should handle single proposal', async () => {
       const proposalCount = 1n;
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Single Proposal', 
+      const mockProposal: any = {
+        id: 0,
+        title: 'Single Proposal',
         description: 'Single Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://single',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
       mockClient.readContract.mockResolvedValue(proposalCount);
@@ -169,28 +169,28 @@ describe('getPublicProposals', () => {
     it('should filter out undefined proposals', async () => {
       const proposalCount = 4n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
         undefined, // This should be filtered out
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
         undefined, // This should be filtered out
       ];
@@ -211,38 +211,38 @@ describe('getPublicProposals', () => {
     it('should reverse the order of proposals', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'First', 
+        {
+          id: 0,
+          title: 'First',
           description: 'First proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://first',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
-          title: 'Second', 
+        {
+          id: 1,
+          title: 'Second',
           description: 'Second proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://second',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
-          title: 'Third', 
+        {
+          id: 2,
+          title: 'Third',
           description: 'Third proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://third',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
@@ -256,7 +256,7 @@ describe('getPublicProposals', () => {
 
       expect(result).toEqual([
         mockProposals[2], // Third -> First
-        mockProposals[1], // Second -> Second  
+        mockProposals[1], // Second -> Second
         mockProposals[0], // First -> Third
       ]);
     });
@@ -276,28 +276,28 @@ describe('getPublicProposals', () => {
     it('should handle individual proposal fetch errors', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
         undefined, // Simulate error by returning undefined
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
@@ -327,9 +327,7 @@ describe('getPublicProposals', () => {
       const proposalCount = 2n;
 
       mockClient.readContract.mockResolvedValue(proposalCount);
-      mockGetPublicProposal
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce(undefined);
+      mockGetPublicProposal.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined);
 
       const result = await getPublicProposals(mockConfig);
 
@@ -340,16 +338,16 @@ describe('getPublicProposals', () => {
   describe('proposal count handling', () => {
     it('should handle large proposal count', async () => {
       const proposalCount = 100n;
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Proposal', 
+      const mockProposal: any = {
+        id: 0,
+        title: 'Proposal',
         description: 'Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://large',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
       mockClient.readContract.mockResolvedValue(proposalCount);
@@ -378,16 +376,16 @@ describe('getPublicProposals', () => {
 
     it('should handle string representation of proposal count', async () => {
       const proposalCount = '10'; // Some contracts might return string
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Proposal', 
+      const mockProposal: any = {
+        id: 0,
+        title: 'Proposal',
         description: 'Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://string',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
       mockClient.readContract.mockResolvedValue(proposalCount);
@@ -404,45 +402,45 @@ describe('getPublicProposals', () => {
     it('should fetch all proposals concurrently', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
+        {
+          id: 0,
           title: 'Proposal 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
+        {
+          id: 1,
           title: 'Proposal 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent2',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
+        {
+          id: 2,
           title: 'Proposal 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
       mockClient.readContract.mockResolvedValue(proposalCount);
-      
+
       // Simulate different response times
       mockGetPublicProposal
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[0] as any), 100)))
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[1] as any), 50)))
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[2] as any), 10)));
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[0] as any), 100)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[1] as any), 50)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[2] as any), 10)));
 
       const startTime = Date.now();
       const result = await getPublicProposals(mockConfig);
@@ -496,25 +494,25 @@ describe('getPublicProposals', () => {
     it('should handle mixed success/failure scenarios', async () => {
       const proposalCount = 4n;
       const successfulProposals = [
-        { 
-          id: 0, 
+        {
+          id: 0,
           title: 'Successful Proposal 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://success1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 2, 
+        {
+          id: 2,
           title: 'Successful Proposal 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://success2',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 

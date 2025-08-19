@@ -52,7 +52,9 @@ describe('getEmergencyProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x656e637279707465645f646174615f31', // metadataURI (hex for encrypted_data_1)
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin
@@ -102,7 +104,9 @@ describe('getEmergencyProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x697066733a2f2f516d456d657267656e637931', // metadataURI (hex for ipfs://QmEmergency1)
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin
@@ -136,7 +140,9 @@ describe('getEmergencyProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x656e637279707465645f646174615f746861745f69735f6e6f745f69706673', // hex for encrypted_data_that_is_not_ipfs
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin
@@ -156,7 +162,9 @@ describe('getEmergencyProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x697066733a2f2f516d456d657267656e637931', // hex for ipfs://QmEmergency1
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin

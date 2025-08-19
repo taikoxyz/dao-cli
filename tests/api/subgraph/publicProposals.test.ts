@@ -1,4 +1,7 @@
-import { getPublicProposalsFromSubgraph, getPublicProposalFromSubgraph } from '../../../src/api/subgraph/publicProposals';
+import {
+  getPublicProposalsFromSubgraph,
+  getPublicProposalFromSubgraph,
+} from '../../../src/api/subgraph/publicProposals';
 import { INetworkConfig } from '../../../src/types/network.type';
 import getIpfsFile from '../../../src/api/ipfs/getIpfsFile';
 
@@ -99,7 +102,7 @@ describe('Public Proposals Subgraph API', () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
 
       await expect(getPublicProposalFromSubgraph(1, configWithoutSubgraph)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config'
+        'Subgraph endpoint is not defined in network config',
       );
     });
 
@@ -261,7 +264,7 @@ describe('Public Proposals Subgraph API', () => {
               creator: '0xcreator1',
               creationBlockNumber: '100',
               executionBlockNumber: '200',
-              vetoes: [{id: 'veto1'}],
+              vetoes: [{ id: 'veto1' }],
             },
           ],
         },
@@ -378,7 +381,7 @@ describe('Public Proposals Subgraph API', () => {
               metadata: '0x697066733a2f2f516d54657374343536',
               creator: '0xcreator2',
               creationBlockNumber: '100',
-              vetoes: [{id: 'veto1'}],
+              vetoes: [{ id: 'veto1' }],
             },
           ],
         },
@@ -488,9 +491,7 @@ describe('Public Proposals Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      mockGetIpfsFile
-        .mockResolvedValueOnce({ title: 'Proposal 1' })
-        .mockResolvedValueOnce({ title: 'Proposal 2' });
+      mockGetIpfsFile.mockResolvedValueOnce({ title: 'Proposal 1' }).mockResolvedValueOnce({ title: 'Proposal 2' });
 
       const result = await getPublicProposalsFromSubgraph(mockConfig);
 

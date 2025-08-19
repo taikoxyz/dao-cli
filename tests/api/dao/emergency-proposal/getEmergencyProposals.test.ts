@@ -41,7 +41,7 @@ describe('getEmergencyProposals', () => {
   it('should fetch all emergency proposals and return them in reverse order', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(3n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -73,18 +73,14 @@ describe('getEmergencyProposals', () => {
     expect(mockGetEmergencyProposal).toHaveBeenNthCalledWith(3, 2, mockConfig);
 
     expect(console.info).toHaveBeenCalledWith('Emergency proposal count: 3');
-    
-    expect(result).toEqual([
-      mockProposals[2],
-      mockProposals[1],
-      mockProposals[0],
-    ]);
+
+    expect(result).toEqual([mockProposals[2], mockProposals[1], mockProposals[0]]);
   });
 
   it('should filter out undefined proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(5n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -110,7 +106,7 @@ describe('getEmergencyProposals', () => {
   it('should handle zero proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(0n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -126,7 +122,7 @@ describe('getEmergencyProposals', () => {
   it('should handle large number of proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(50n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -134,11 +130,11 @@ describe('getEmergencyProposals', () => {
 
     // Mock all 50 proposals
     for (let i = 0; i < 50; i++) {
-      mockGetEmergencyProposal.mockResolvedValueOnce({ 
-        id: i, 
+      mockGetEmergencyProposal.mockResolvedValueOnce({
+        id: i,
         title: `Emergency ${i}`,
         executed: i % 2 === 0,
-        approvals: i % 3
+        approvals: i % 3,
       } as any);
     }
 
@@ -152,7 +148,7 @@ describe('getEmergencyProposals', () => {
 
   it('should handle errors and log them', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    
+
     const mockReadContract = jest.fn().mockRejectedValue(new Error('Contract read failed'));
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -167,7 +163,7 @@ describe('getEmergencyProposals', () => {
   it('should handle errors in individual proposal fetches gracefully', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(3n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -188,7 +184,7 @@ describe('getEmergencyProposals', () => {
   it('should fetch proposals in parallel using Promise.all', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(4n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -197,15 +193,20 @@ describe('getEmergencyProposals', () => {
     // Create promises with different resolution times to verify parallel execution
     const delays = [40, 10, 25, 5];
     delays.forEach((delay, index) => {
-      mockGetEmergencyProposal.mockImplementationOnce(() => 
-        new Promise(resolve => 
-          setTimeout(() => resolve({ 
-            id: index, 
-            title: `Emergency ${index}`,
-            executed: false,
-            approvals: 1
-          } as any), delay)
-        )
+      mockGetEmergencyProposal.mockImplementationOnce(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  id: index,
+                  title: `Emergency ${index}`,
+                  executed: false,
+                  approvals: 1,
+                } as any),
+              delay,
+            ),
+          ),
       );
     });
 
@@ -224,7 +225,7 @@ describe('getEmergencyProposals', () => {
   it('should handle bigint conversion properly', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetEmergencyProposal = getEmergencyProposal as jest.MockedFunction<typeof getEmergencyProposal>;
-    
+
     // Test with a reasonable bigint value
     const mockReadContract = jest.fn().mockResolvedValue(BigInt('3'));
     mockGetPublicClient.mockReturnValue({
@@ -233,9 +234,9 @@ describe('getEmergencyProposals', () => {
 
     // Mock the 3 proposals
     for (let i = 0; i < 3; i++) {
-      mockGetEmergencyProposal.mockResolvedValueOnce({ 
-        id: i, 
-        title: `Emergency ${i}` 
+      mockGetEmergencyProposal.mockResolvedValueOnce({
+        id: i,
+        title: `Emergency ${i}`,
       } as any);
     }
 

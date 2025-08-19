@@ -72,7 +72,7 @@ describe('selectNetworkPrompt', () => {
       const result = await selectNetworkPrompt();
 
       expect(result.subgraph).toBe(
-        'https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn'
+        'https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn',
       );
     });
   });
@@ -114,7 +114,7 @@ describe('selectNetworkPrompt', () => {
       const result = await selectNetworkPrompt();
 
       expect(result.subgraph).toBe(
-        'https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao/mainnet/gn'
+        'https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao/mainnet/gn',
       );
     });
   });
@@ -123,33 +123,25 @@ describe('selectNetworkPrompt', () => {
     it('should throw error for unsupported network', async () => {
       mockSelect.mockResolvedValue('unsupported-network');
 
-      await expect(selectNetworkPrompt()).rejects.toThrow(
-        'Network unsupported-network is not supported.'
-      );
+      await expect(selectNetworkPrompt()).rejects.toThrow('Network unsupported-network is not supported.');
     });
 
     it('should throw error for undefined network selection', async () => {
       mockSelect.mockResolvedValue(undefined);
 
-      await expect(selectNetworkPrompt()).rejects.toThrow(
-        'Network undefined is not supported.'
-      );
+      await expect(selectNetworkPrompt()).rejects.toThrow('Network undefined is not supported.');
     });
 
     it('should throw error for null network selection', async () => {
       mockSelect.mockResolvedValue(null);
 
-      await expect(selectNetworkPrompt()).rejects.toThrow(
-        'Network null is not supported.'
-      );
+      await expect(selectNetworkPrompt()).rejects.toThrow('Network null is not supported.');
     });
 
     it('should throw error for empty string network selection', async () => {
       mockSelect.mockResolvedValue('');
 
-      await expect(selectNetworkPrompt()).rejects.toThrow(
-        'Network  is not supported.'
-      );
+      await expect(selectNetworkPrompt()).rejects.toThrow('Network  is not supported.');
     });
   });
 
@@ -166,7 +158,7 @@ describe('selectNetworkPrompt', () => {
       expect(result).toHaveProperty('urls.explorer');
       expect(result).toHaveProperty('subgraph');
       expect(result).toHaveProperty('contracts');
-      
+
       // Validate contract properties
       expect(result.contracts).toHaveProperty('DAO');
       expect(result.contracts).toHaveProperty('VotingToken');
@@ -197,7 +189,7 @@ describe('selectNetworkPrompt', () => {
       expect(result).toHaveProperty('urls.explorer');
       expect(result).toHaveProperty('subgraph');
       expect(result).toHaveProperty('contracts');
-      
+
       // Validate contract properties
       expect(result.contracts).toHaveProperty('DAO');
       expect(result.contracts).toHaveProperty('VotingToken');

@@ -17,7 +17,9 @@ jest.mock('../src/util/stringifyJsonWithBigInt');
 
 const mockCache = cache as jest.Mocked<typeof cache>;
 const mockGetContractsPrompt = getContractsPrompt as jest.MockedFunction<typeof getContractsPrompt>;
-const mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<typeof interactWithContractPrompt>;
+const mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<
+  typeof interactWithContractPrompt
+>;
 const mockSelectNetworkPrompt = selectNetworkPrompt as jest.MockedFunction<typeof selectNetworkPrompt>;
 const mockConnectEnvWallet = connectEnvWallet as jest.MockedFunction<typeof connectEnvWallet>;
 const mockSelectMainMenuPrompt = selectMainMenuPrompt as jest.MockedFunction<typeof selectMainMenuPrompt>;
@@ -33,7 +35,7 @@ describe('main index.ts', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods
     jest.spyOn(console, 'info').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
@@ -79,7 +81,7 @@ describe('main index.ts', () => {
   describe('main function', () => {
     // Since main() is called at module level, we need to test by requiring the module
     // But since Jest has already loaded it, we'll test the main logic through indirect means
-    
+
     it('should be importable without throwing', () => {
       // The main test is that importing the index file doesn't throw
       // This tests the module structure and basic imports
@@ -91,7 +93,7 @@ describe('main index.ts', () => {
 
   describe('main function logic (through mock verification)', () => {
     // Since main() runs automatically, we need to isolate and test its components
-    
+
     beforeEach(() => {
       // Mock the main menu to prevent infinite recursion
       mockSelectMainMenuPrompt.mockImplementation(() => {
@@ -105,7 +107,7 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         // Give time for async main() to run
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw due to mocked exit
       }
@@ -121,7 +123,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -136,7 +138,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -148,7 +150,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -162,7 +164,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -180,7 +182,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -194,7 +196,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -208,7 +210,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw
       }
@@ -224,7 +226,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // May throw due to mocked functions
       }
@@ -235,13 +237,10 @@ describe('main index.ts', () => {
 
   describe('mainLoop function (if activated)', () => {
     // The mainLoop function is commented out but we can test its logic if needed
-    
+
     it('should be defined in the module structure', () => {
       // This verifies the mainLoop function exists in the code structure
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
       expect(indexContent).toContain('async function mainLoop');
     });
   });
@@ -253,7 +252,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Should propagate the error
         expect(error).toBeDefined();
@@ -269,7 +268,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw due to mocked main menu, not cache errors
         expect((error as Error).message).toBe('process.exit called');
@@ -279,11 +278,8 @@ describe('main index.ts', () => {
 
   describe('module imports and dependencies', () => {
     it('should import all required modules', () => {
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
-      
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
+
       const expectedImports = [
         './util/stringifyJsonWithBigInt',
         './api/cache',
@@ -295,17 +291,14 @@ describe('main index.ts', () => {
         './types/network.type',
       ];
 
-      expectedImports.forEach(importPath => {
+      expectedImports.forEach((importPath) => {
         expect(indexContent).toContain(importPath);
       });
     });
 
     it('should have proper async function structure', () => {
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
-      
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
+
       expect(indexContent).toContain('async function main()');
       expect(indexContent).toContain('main()');
     });

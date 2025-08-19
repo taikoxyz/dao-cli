@@ -19,7 +19,7 @@ describe('getSecurityCouncilMembers', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -46,7 +46,7 @@ describe('getSecurityCouncilMembers', () => {
     };
 
     mockGetPublicClient.mockReturnValue(mockClient);
-    
+
     // Mock ABIs
     (ABIs as any) = {
       SignerList: [
@@ -72,8 +72,14 @@ describe('getSecurityCouncilMembers', () => {
   describe('cache behavior', () => {
     it('should return cached data when available', async () => {
       const cachedData = [
-        { owner: '0x1111111111111111111111111111111111111111' as Address, signer: '0x2222222222222222222222222222222222222222' as Address },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x1111111111111111111111111111111111111111' as Address,
+          signer: '0x2222222222222222222222222222222222222222' as Address,
+        },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
       ];
 
       mockCache.has.mockResolvedValue(true);
@@ -89,12 +95,12 @@ describe('getSecurityCouncilMembers', () => {
 
     it('should fetch fresh data when cache is empty', async () => {
       mockCache.has.mockResolvedValue(false);
-      
+
       const mockSigners = [
         '0x1111111111111111111111111111111111111111' as Address,
         '0x2222222222222222222222222222222222222222' as Address,
       ];
-      
+
       const mockOwners = [
         '0x3333333333333333333333333333333333333333' as Address,
         '0x4444444444444444444444444444444444444444' as Address,
@@ -133,9 +139,7 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract
-        .mockResolvedValueOnce(mockSigners)
-        .mockResolvedValueOnce(mockOwner);
+      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
       mockClient.getBlockNumber.mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
@@ -152,9 +156,7 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract
-        .mockResolvedValueOnce(mockSigners)
-        .mockResolvedValueOnce(mockOwner);
+      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
       mockClient.getBlockNumber.mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
@@ -190,7 +192,7 @@ describe('getSecurityCouncilMembers', () => {
       await getSecurityCouncilMembers(mockConfig);
 
       expect(mockClient.readContract).toHaveBeenCalledTimes(4); // 1 for getEncryptionAgents + 3 for owners
-      
+
       mockSigners.forEach((signer, index) => {
         expect(mockClient.readContract).toHaveBeenCalledWith({
           address: mockConfig.contracts.SignerList,
@@ -236,13 +238,11 @@ describe('getSecurityCouncilMembers', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error fetching owner for signer'),
-        expect.any(Error)
+        expect.any(Error),
       );
-      
+
       // Should continue processing other signers
-      expect(result).toEqual([
-        { owner: mockOwner, signer: mockSigners[1] },
-      ]);
+      expect(result).toEqual([{ owner: mockOwner, signer: mockSigners[1] }]);
 
       consoleErrorSpy.mockRestore();
     });
@@ -288,9 +288,7 @@ describe('getSecurityCouncilMembers', () => {
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
       const expectedResult = [{ owner: mockOwner, signer: mockSigners[0] }];
 
-      mockClient.readContract
-        .mockResolvedValueOnce(mockSigners)
-        .mockResolvedValueOnce(mockOwner);
+      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
       mockClient.getBlockNumber.mockResolvedValue(1000n);
 
       await getSecurityCouncilMembers(mockConfig);
@@ -332,9 +330,7 @@ describe('getSecurityCouncilMembers', () => {
       const mockSigners = ['0x1111111111111111111111111111111111111111' as Address];
       const mockOwner = '0x2222222222222222222222222222222222222222' as Address;
 
-      mockClient.readContract
-        .mockResolvedValueOnce(mockSigners)
-        .mockResolvedValueOnce(mockOwner);
+      mockClient.readContract.mockResolvedValueOnce(mockSigners).mockResolvedValueOnce(mockOwner);
       mockClient.getBlockNumber.mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);

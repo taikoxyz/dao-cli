@@ -55,7 +55,7 @@ describe('Subgraph API', () => {
               metadata: '0x697066733a2f2f516d5465737431', // hex for ipfs://QmTest1
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator1',
             },
             {
@@ -63,7 +63,7 @@ describe('Subgraph API', () => {
               metadata: '0x697066733a2f2f516d5465737432', // hex for ipfs://QmTest2
               creationBlockNumber: '1234567891',
               executionBlockNumber: '1234567900',
-              approvers: [{id: '0x1'}, {id: '0x2'}, {id: '0x3'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }, { id: '0x3' }],
               creator: '0xcreator2',
             },
           ],
@@ -84,7 +84,7 @@ describe('Subgraph API', () => {
         mockConfig.subgraph,
         expect.objectContaining({
           method: 'POST',
-        })
+        }),
       );
     });
 
@@ -120,7 +120,7 @@ describe('Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f31', // hex for encrypted_data_1
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator1',
             },
           ],
@@ -129,7 +129,7 @@ describe('Subgraph API', () => {
               id: '1',
               encryptedPayloadURI: '0x656e637279707465645f646174615f31',
               creator: '0xcreator1',
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creationBlockNumber: '1234567890',
             },
           ],
@@ -239,7 +239,7 @@ describe('Subgraph API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: expect.stringContaining('"first":100'),
-        })
+        }),
       );
     });
 
@@ -247,7 +247,16 @@ describe('Subgraph API', () => {
       const mockResponse = {
         data: {
           optimisticTokenVotingProposals: [
-            { id: '3', metadata: 'test', creator: 'c', startDate: '1', endDate: '2', creatorAddress: '0x1', contractEventId: 'e', creationBlockNumber: '1' },
+            {
+              id: '3',
+              metadata: 'test',
+              creator: 'c',
+              startDate: '1',
+              endDate: '2',
+              creatorAddress: '0x1',
+              contractEventId: 'e',
+              creationBlockNumber: '1',
+            },
           ],
         },
       };
@@ -264,7 +273,7 @@ describe('Subgraph API', () => {
         mockConfig.subgraph,
         expect.objectContaining({
           body: expect.stringContaining('"first":50,"skip":10'),
-        })
+        }),
       );
     });
 
@@ -282,7 +291,9 @@ describe('Subgraph API', () => {
         statusText: 'Internal Server Error',
       } as Response);
 
-      await expect(fetchPublicProposalsFromSubgraph(mockConfig)).rejects.toThrow('Subgraph request failed: 500 Internal Server Error');
+      await expect(fetchPublicProposalsFromSubgraph(mockConfig)).rejects.toThrow(
+        'Subgraph request failed: 500 Internal Server Error',
+      );
     });
 
     it('should handle invalid response data', async () => {
@@ -312,7 +323,9 @@ describe('Subgraph API', () => {
     it('should throw error if subgraph endpoint is not defined', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
 
-      await expect(fetchPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow('Subgraph endpoint is not defined in network config');
+      await expect(fetchPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow(
+        'Subgraph endpoint is not defined in network config',
+      );
     });
   });
 
@@ -398,7 +411,9 @@ describe('Subgraph API', () => {
     it('should throw error if subgraph endpoint is not defined', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
 
-      await expect(fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow('Subgraph endpoint is not defined in network config');
+      await expect(fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow(
+        'Subgraph endpoint is not defined in network config',
+      );
     });
 
     it('should propagate errors from fetchPublicProposalsFromSubgraph', async () => {
@@ -413,12 +428,8 @@ describe('Subgraph API', () => {
       const mockResponse = {
         data: {
           signerListMembers: [
-            { 
-              approvers: [
-                { id: '0xmember1' },
-                { id: '0xmember2' },
-                { id: '0xmember3' },
-              ]
+            {
+              approvers: [{ id: '0xmember1' }, { id: '0xmember2' }, { id: '0xmember3' }],
             },
           ],
         },

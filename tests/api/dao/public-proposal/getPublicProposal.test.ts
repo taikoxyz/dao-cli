@@ -69,11 +69,12 @@ describe('getPublicProposal', () => {
   it('should fetch and return proposal data with metadata', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
-    
-    const mockReadContract = jest.fn()
+
+    const mockReadContract = jest
+      .fn()
       .mockResolvedValueOnce('0x00000001') // proposalId
       .mockResolvedValueOnce(mockProposalData); // proposal data
-    
+
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
     } as any);
@@ -113,17 +114,18 @@ describe('getPublicProposal', () => {
   it('should handle IPFS URI without ipfs:// prefix', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
-    
+
     const proposalDataWithoutPrefix = [
       ...mockProposalData.slice(0, 4),
       '0x516d54657374313233', // hex for 'QmTest123' without ipfs:// prefix
       mockProposalData[5],
     ];
 
-    const mockReadContract = jest.fn()
+    const mockReadContract = jest
+      .fn()
       .mockResolvedValueOnce('0x00000002')
       .mockResolvedValueOnce(proposalDataWithoutPrefix);
-    
+
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
     } as any);
@@ -138,10 +140,9 @@ describe('getPublicProposal', () => {
 
   it('should handle errors and log them', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    
-    const mockReadContract = jest.fn()
-      .mockRejectedValue(new Error('Contract read failed'));
-    
+
+    const mockReadContract = jest.fn().mockRejectedValue(new Error('Contract read failed'));
+
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
     } as any);
@@ -156,11 +157,9 @@ describe('getPublicProposal', () => {
   it('should handle IPFS fetch errors', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
-    
-    const mockReadContract = jest.fn()
-      .mockResolvedValueOnce('0x00000003')
-      .mockResolvedValueOnce(mockProposalData);
-    
+
+    const mockReadContract = jest.fn().mockResolvedValueOnce('0x00000003').mockResolvedValueOnce(mockProposalData);
+
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
     } as any);
@@ -176,11 +175,12 @@ describe('getPublicProposal', () => {
   it('should handle different proposal counts', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
-    
-    const mockReadContract = jest.fn()
+
+    const mockReadContract = jest
+      .fn()
       .mockResolvedValueOnce('0x0000000A') // proposalId for count 10
       .mockResolvedValueOnce(mockProposalData);
-    
+
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
     } as any);

@@ -66,7 +66,7 @@ describe('Delegates API', () => {
         expect.objectContaining({
           address: mockConfig.contracts.DelegationWall,
           functionName: 'candidateCount',
-        })
+        }),
       );
     });
 
@@ -94,30 +94,30 @@ describe('Delegates API', () => {
         { address: '0xcached1', contentUrl: 'cached1' }, // No identifier
         { address: '0xcached2', contentUrl: 'cached2' }, // No identifier
       ];
-      
+
       mockCache.has.mockResolvedValue(true);
       mockCache.get.mockResolvedValue(cachedDelegates);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       // Mock fresh data fetch
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f636f6e74656e7431'); // contentUrl
-      
+
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
-      
+
       const result = await getDelegates(mockConfig);
-      
+
       expect(consoleInfoSpy).toHaveBeenCalledWith('Cache found but metadata missing, refreshing...');
       expect(mockPublicClient.readContract).toHaveBeenCalled(); // Should fetch fresh data
-      
+
       consoleInfoSpy.mockRestore();
     });
 
     it('should fetch all delegates', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1', '0xdelegate2']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f636f6e74656e7431') // contentUrl for delegate1
@@ -139,14 +139,14 @@ describe('Delegates API', () => {
     it('should fetch delegates with IPFS metadata', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
 
       mockGetIpfsFile.mockResolvedValue({
         identifier: 'Test Identifier',
-        description: 'Test description'
+        description: 'Test description',
       });
 
       const result = await getDelegates(mockConfig);
@@ -158,22 +158,22 @@ describe('Delegates API', () => {
         identifier: 'Test Identifier',
         metadata: {
           identifier: 'Test Identifier',
-          description: 'Test description'
-        }
+          description: 'Test description',
+        },
       });
     });
 
     it('should use name field when identifier is not available', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
 
       mockGetIpfsFile.mockResolvedValue({
         name: 'Test Name',
-        description: 'Test description'
+        description: 'Test description',
       });
 
       const result = await getDelegates(mockConfig);
@@ -184,14 +184,14 @@ describe('Delegates API', () => {
     it('should use title field when identifier and name are not available', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
 
       mockGetIpfsFile.mockResolvedValue({
         title: 'Test Title',
-        description: 'Test description'
+        description: 'Test description',
       });
 
       const result = await getDelegates(mockConfig);
@@ -202,14 +202,14 @@ describe('Delegates API', () => {
     it('should use displayName field as last resort', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
 
       mockGetIpfsFile.mockResolvedValue({
         displayName: 'Test Display Name',
-        description: 'Test description'
+        description: 'Test description',
       });
 
       const result = await getDelegates(mockConfig);
@@ -220,29 +220,29 @@ describe('Delegates API', () => {
     it('should warn when no identifier fields are found', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
 
       mockGetIpfsFile.mockResolvedValue({
-        description: 'Test description only'
+        description: 'Test description only',
       });
 
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       const result = await getDelegates(mockConfig);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith('No identifier found in metadata for 0xdelegate1');
       expect(result[0].identifier).toBeUndefined();
-      
+
       consoleWarnSpy.mockRestore();
     });
 
     it('should handle null contentUrl bytes', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce(null); // null contentUrl
@@ -252,14 +252,14 @@ describe('Delegates API', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         address: '0xdelegate1',
-        contentUrl: ''
+        contentUrl: '',
       });
     });
 
     it('should handle IPFS metadata fetch errors', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockResolvedValueOnce('0x697066733a2f2f516d54657374313233'); // ipfs://QmTest123
@@ -267,38 +267,38 @@ describe('Delegates API', () => {
       mockGetIpfsFile.mockRejectedValue(new Error('IPFS fetch failed'));
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const result = await getDelegates(mockConfig);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error fetching IPFS metadata for delegate 0xdelegate1:',
-        expect.any(Error)
+        expect.any(Error),
       );
       expect(result[0].metadata).toBeUndefined();
-      
+
       consoleErrorSpy.mockRestore();
     });
 
     it('should handle individual delegate fetch errors', async () => {
       mockCache.has.mockResolvedValue(false);
       mockCache.set.mockResolvedValue(undefined);
-      
+
       mockPublicClient.readContract
         .mockResolvedValueOnce(['0xdelegate1', '0xdelegate2']) // getCandidateAddresses
         .mockRejectedValueOnce(new Error('Contract read failed')) // fail for delegate1
         .mockResolvedValueOnce('0x697066733a2f2f636f6e74656e7432'); // succeed for delegate2
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const result = await getDelegates(mockConfig);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error fetching profile for delegate 0xdelegate1:',
-        expect.any(Error)
+        expect.any(Error),
       );
       expect(result).toHaveLength(1);
       expect(result[0].address).toBe('0xdelegate2');
-      
+
       consoleErrorSpy.mockRestore();
     });
 
@@ -307,12 +307,12 @@ describe('Delegates API', () => {
         { address: '0xcached1', contentUrl: 'cached1', identifier: 'Cached 1' },
         { address: '0xcached2', contentUrl: 'cached2', identifier: 'Cached 2' },
       ];
-      
+
       mockCache.has.mockResolvedValue(true);
       mockCache.get.mockResolvedValue(cachedDelegates);
-      
+
       const result = await getDelegates(mockConfig);
-      
+
       expect(result).toEqual(cachedDelegates);
       expect(mockPublicClient.readContract).not.toHaveBeenCalled();
     });
@@ -377,7 +377,9 @@ describe('Delegates API', () => {
     it('should handle HTTP metadata URLs', async () => {
       // Mock contentUrl as hex encoded HTTP URL
       // Note: Current implementation doesn't fetch HTTP metadata, only IPFS
-      mockPublicClient.readContract.mockResolvedValue('0x68747470733a2f2f6578616d706c652e636f6d2f6d657461646174612e6a736f6e');
+      mockPublicClient.readContract.mockResolvedValue(
+        '0x68747470733a2f2f6578616d706c652e636f6d2f6d657461646174612e6a736f6e',
+      );
 
       const result = await getDelegate(delegateAddress, mockConfig, false);
 
@@ -477,7 +479,7 @@ describe('Delegates API', () => {
 
       expect(result).toEqual({
         votingPower: 1000n,
-        tokenBalance: 500n
+        tokenBalance: 500n,
       });
     });
 
@@ -485,16 +487,16 @@ describe('Delegates API', () => {
       mockPublicClient.readContract.mockRejectedValue(new Error('Contract read failed'));
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       const { getDelegateVotingPower } = require('../../../../src/api/dao/delegates/getDelegates');
       const result = await getDelegateVotingPower('0xdelegate1', mockConfig);
 
       expect(result).toEqual({
         votingPower: 0n,
-        tokenBalance: 0n
+        tokenBalance: 0n,
       });
       expect(consoleErrorSpy).toHaveBeenCalled();
-      
+
       consoleErrorSpy.mockRestore();
     });
   });

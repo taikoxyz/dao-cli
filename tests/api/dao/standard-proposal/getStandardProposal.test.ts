@@ -52,7 +52,9 @@ describe('getStandardProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x697066733a2f2f516d5465737431', // metadataURI (hex for ipfs://QmTest1)
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin
@@ -104,7 +106,9 @@ describe('getStandardProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x697066733a2f2f516d5465737431', // metadataURI
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin
@@ -134,7 +138,9 @@ describe('getStandardProposal', () => {
     const mockContractResponse = [
       false, // executed
       2n, // approvals
-      { /* parameters */ },
+      {
+        /* parameters */
+      },
       '0x68747470733a2f2f6578616d706c652e636f6d2f6d657461646174612e6a736f6e', // hex for https://example.com/metadata.json
       [], // destinationActions
       '0x0000000000000000000000000000000000000000', // destinationPlugin

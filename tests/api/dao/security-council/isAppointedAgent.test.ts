@@ -6,14 +6,16 @@ import { INetworkConfig } from '../../../../src/types/network.type';
 // Mock dependencies
 jest.mock('../../../../src/api/dao/security-council/getSecurityCouncilMembers');
 
-const mockGetSecurityCouncilMembers = getSecurityCouncilMembers as jest.MockedFunction<typeof getSecurityCouncilMembers>;
+const mockGetSecurityCouncilMembers = getSecurityCouncilMembers as jest.MockedFunction<
+  typeof getSecurityCouncilMembers
+>;
 
 describe('isSecurityCouncilMember', () => {
   let mockConfig: INetworkConfig;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -40,7 +42,10 @@ describe('isSecurityCouncilMember', () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
       const mockMembers = [
         { owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -54,8 +59,14 @@ describe('isSecurityCouncilMember', () => {
     it('should return false when address does not match any signer', async () => {
       const targetAddress = '0x9999999999999999999999999999999999999999' as Address;
       const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: '0x1111111111111111111111111111111111111111' as Address },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x2222222222222222222222222222222222222222' as Address,
+          signer: '0x1111111111111111111111111111111111111111' as Address,
+        },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -83,7 +94,10 @@ describe('isSecurityCouncilMember', () => {
     it('should handle lowercase addresses correctly', async () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
       const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: '0x1111111111111111111111111111111111111111' as Address },
+        {
+          owner: '0x2222222222222222222222222222222222222222' as Address,
+          signer: '0x1111111111111111111111111111111111111111' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -96,7 +110,10 @@ describe('isSecurityCouncilMember', () => {
     it('should handle uppercase addresses correctly', async () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
       const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: '0x1111111111111111111111111111111111111111' as Address },
+        {
+          owner: '0x2222222222222222222222222222222222222222' as Address,
+          signer: '0x1111111111111111111111111111111111111111' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -126,8 +143,14 @@ describe('isSecurityCouncilMember', () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
       const mockMembers = [
         { owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
-        { owner: '0x5555555555555555555555555555555555555555' as Address, signer: '0x6666666666666666666666666666666666666666' as Address },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
+        {
+          owner: '0x5555555555555555555555555555555555555555' as Address,
+          signer: '0x6666666666666666666666666666666666666666' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -140,9 +163,15 @@ describe('isSecurityCouncilMember', () => {
     it('should find match in the middle position', async () => {
       const targetAddress = '0x4444444444444444444444444444444444444444' as Address;
       const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: '0x1111111111111111111111111111111111111111' as Address },
+        {
+          owner: '0x2222222222222222222222222222222222222222' as Address,
+          signer: '0x1111111111111111111111111111111111111111' as Address,
+        },
         { owner: '0x3333333333333333333333333333333333333333' as Address, signer: targetAddress },
-        { owner: '0x5555555555555555555555555555555555555555' as Address, signer: '0x6666666666666666666666666666666666666666' as Address },
+        {
+          owner: '0x5555555555555555555555555555555555555555' as Address,
+          signer: '0x6666666666666666666666666666666666666666' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -155,8 +184,14 @@ describe('isSecurityCouncilMember', () => {
     it('should find match in the last position', async () => {
       const targetAddress = '0x6666666666666666666666666666666666666666' as Address;
       const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: '0x1111111111111111111111111111111111111111' as Address },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x2222222222222222222222222222222222222222' as Address,
+          signer: '0x1111111111111111111111111111111111111111' as Address,
+        },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
         { owner: '0x5555555555555555555555555555555555555555' as Address, signer: targetAddress },
       ];
 
@@ -171,7 +206,10 @@ describe('isSecurityCouncilMember', () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
       const mockMembers = [
         { owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
         { owner: '0x5555555555555555555555555555555555555555' as Address, signer: targetAddress }, // Duplicate signer
       ];
 
@@ -188,7 +226,10 @@ describe('isSecurityCouncilMember', () => {
       const targetAddress = '0x2222222222222222222222222222222222222222' as Address;
       const mockMembers = [
         { owner: targetAddress, signer: '0x1111111111111111111111111111111111111111' as Address }, // Target is owner, not signer
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -203,7 +244,10 @@ describe('isSecurityCouncilMember', () => {
       const ownerAddress = '0x2222222222222222222222222222222222222222' as Address;
       const mockMembers = [
         { owner: ownerAddress, signer: targetAddress },
-        { owner: '0x3333333333333333333333333333333333333333' as Address, signer: '0x4444444444444444444444444444444444444444' as Address },
+        {
+          owner: '0x3333333333333333333333333333333333333333' as Address,
+          signer: '0x4444444444444444444444444444444444444444' as Address,
+        },
       ];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
@@ -226,7 +270,7 @@ describe('isSecurityCouncilMember', () => {
       mockGetSecurityCouncilMembers.mockRejectedValue(error);
 
       await expect(isSecurityCouncilMember(targetAddress, mockConfig)).rejects.toThrow(
-        'Failed to fetch security council members'
+        'Failed to fetch security council members',
       );
     });
 
@@ -236,18 +280,14 @@ describe('isSecurityCouncilMember', () => {
 
       mockGetSecurityCouncilMembers.mockRejectedValue(networkError);
 
-      await expect(isSecurityCouncilMember(targetAddress, mockConfig)).rejects.toThrow(
-        'Network connection failed'
-      );
+      await expect(isSecurityCouncilMember(targetAddress, mockConfig)).rejects.toThrow('Network connection failed');
     });
   });
 
   describe('integration behavior', () => {
     it('should call getSecurityCouncilMembers with correct config', async () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
-      const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress },
-      ];
+      const mockMembers = [{ owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress }];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
 
@@ -259,9 +299,7 @@ describe('isSecurityCouncilMember', () => {
 
     it('should work with different network configs', async () => {
       const targetAddress = '0x1111111111111111111111111111111111111111' as Address;
-      const mockMembers = [
-        { owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress },
-      ];
+      const mockMembers = [{ owner: '0x2222222222222222222222222222222222222222' as Address, signer: targetAddress }];
 
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
 
@@ -274,7 +312,7 @@ describe('isSecurityCouncilMember', () => {
 
     it('should handle large member lists efficiently', async () => {
       const targetAddress = '0x9999999999999999999999999999999999999999' as Address;
-      
+
       // Create large list with target at the end
       const mockMembers = [];
       for (let i = 0; i < 1000; i++) {

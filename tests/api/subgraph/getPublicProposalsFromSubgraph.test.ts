@@ -89,13 +89,13 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should fetch and process proposals with metadata', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals as any);
-    mockGetIpfsFile
-      .mockResolvedValueOnce(mockMetadata1)
-      .mockResolvedValueOnce(mockMetadata2);
+    mockGetIpfsFile.mockResolvedValueOnce(mockMetadata1).mockResolvedValueOnce(mockMetadata2);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);
 
@@ -120,7 +120,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should fetch proposals without metadata when fetchMetadata is false', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals as any);
@@ -137,7 +139,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should use default fetchMetadata value of true', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     mockFetchAll.mockResolvedValue([mockSubgraphProposals[0]] as any);
@@ -150,7 +154,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should handle empty proposals array', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
 
     mockFetchAll.mockResolvedValue([]);
 
@@ -161,13 +167,13 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should handle metadata fetch errors gracefully', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     mockFetchAll.mockResolvedValue([mockSubgraphProposals[0], mockSubgraphProposals[1]] as any);
-    mockGetIpfsFile
-      .mockRejectedValueOnce(new Error('IPFS fetch failed'))
-      .mockResolvedValueOnce(mockMetadata2);
+    mockGetIpfsFile.mockRejectedValueOnce(new Error('IPFS fetch failed')).mockResolvedValueOnce(mockMetadata2);
 
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);
 
@@ -177,7 +183,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should handle non-IPFS metadata URIs', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     const proposalWithHttpUri = {
@@ -194,7 +202,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should handle null or undefined metadata URIs', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
 
     const proposalsWithBadMetadata = [
       { ...mockSubgraphProposals[0], metadata: null },
@@ -213,7 +223,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should throw and log errors from fetchAllPublicProposalsFromSubgraph', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
 
     const error = new Error('Subgraph fetch failed');
     mockFetchAll.mockRejectedValue(error);
@@ -223,7 +235,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should correctly convert timestamps to dates', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
 
     const proposalWithLargeTimestamp = {
       ...mockSubgraphProposals[0],
@@ -240,7 +254,9 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should correctly convert block numbers to bigint', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
 
     const proposalWithLargeBlockNumber = {
       ...mockSubgraphProposals[0],
@@ -256,19 +272,17 @@ describe('getPublicProposalsFromSubgraph', () => {
   });
 
   it('should fetch metadata in parallel', async () => {
-    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<typeof fetchAllPublicProposalsFromSubgraph>;
+    const mockFetchAll = fetchAllPublicProposalsFromSubgraph as jest.MockedFunction<
+      typeof fetchAllPublicProposalsFromSubgraph
+    >;
     const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
     mockFetchAll.mockResolvedValue(mockSubgraphProposals.slice(0, 2) as any);
 
     // Create promises with different resolution times
     mockGetIpfsFile
-      .mockImplementationOnce(() => 
-        new Promise(resolve => setTimeout(() => resolve(mockMetadata1), 50))
-      )
-      .mockImplementationOnce(() => 
-        new Promise(resolve => setTimeout(() => resolve(mockMetadata2), 10))
-      );
+      .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockMetadata1), 50)))
+      .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockMetadata2), 10)));
 
     const startTime = Date.now();
     const result = await getPublicProposalsFromSubgraph(mockConfig, true);

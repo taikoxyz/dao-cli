@@ -1,21 +1,21 @@
 {
-"network": "holesky",
-"chainId": 17000,
-"ipfsGateway": "https://dweb.link/ipfs",
-"urls": {
+  "network": "holesky",
+  "chainId": 17000,
+  "ipfsGateway": "https://dweb.link/ipfs",
+  "urls": {
     "rpc": "https://holesky.drpc.org",
     "explorer": "https://holesky.etherscan.io/"
-},
-"subgraph": "https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn",
-"contracts": {
+  },
+  "subgraph": "https://api.goldsky.com/api/public/project_clz85cxrvng3n01ughcv5e7hg/subgraphs/dao-holesky/holesky/gn",
+  "contracts": {
     "DAO": "0x3b7FFC62241647369d28881479b907DFF6e71882",
-  "VotingToken": "0x6490E12d480549D333499236fF2Ba6676C296011",
-  "TaikoBridge": "0xA098b76a3Dd499D3F6D58D8AcCaFC8efBFd06807",
+    "VotingToken": "0x6490E12d480549D333499236fF2Ba6676C296011",
+    "TaikoBridge": "0xA098b76a3Dd499D3F6D58D8AcCaFC8efBFd06807",
     "MultisigPlugin": "0xCBD72Ba85bccF95BD39AA7A1bdD3F2213C642cd4",
-  "EmergencyMultisigPlugin": "0x53b6A327aFaf16F842Ce46fF18019418dd629bE7",
-  "OptimisticTokenVotingPlugin": "0xB1807C3cE200016b5bdAFe0B0df0A91853D24Cb3",
-  "SignerList":"0xE919a2e4FE5b029d3C835622dfaF1d09FdF2E4C8",
-  "EncryptionRegistry":"0xb1CB4ae1f00204Bc752a717f1Bf6d4cDA8609099",
-  "DelegationWall":"0x2994078a949D679d62744D136f295aba4Bc42421"
-}
+    "EmergencyMultisigPlugin": "0x53b6A327aFaf16F842Ce46fF18019418dd629bE7",
+    "OptimisticTokenVotingPlugin": "0xB1807C3cE200016b5bdAFe0B0df0A91853D24Cb3",
+    "SignerList": "0xE919a2e4FE5b029d3C835622dfaF1d09FdF2E4C8",
+    "EncryptionRegistry": "0xb1CB4ae1f00204Bc752a717f1Bf6d4cDA8609099",
+    "DelegationWall": "0x2994078a949D679d62744D136f295aba4Bc42421"
+  }
 }

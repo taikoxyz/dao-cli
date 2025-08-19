@@ -1,8 +1,8 @@
-import getDecryptionKey, { 
-  hexToUint8Array, 
-  computePublicKey, 
+import getDecryptionKey, {
+  hexToUint8Array,
+  computePublicKey,
   DETERMINISTIC_EMERGENCY_PAYLOAD,
-  decrypt 
+  decrypt,
 } from '../../../../src/api/dao/security-council/getDecryptionKey';
 import getEnvPrivateKey from '../../../../src/api/web3/getEnvPrivateKey';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -36,7 +36,7 @@ describe('getDecryptionKey module', () => {
   beforeEach(() => {
     // Mock console methods
     jest.spyOn(console, 'error').mockImplementation();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -63,7 +63,9 @@ describe('getDecryptionKey module', () => {
     };
 
     // Set up the function mocks that don't change between tests
-    mockGetEnvPrivateKey.mockImplementation(() => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12');
+    mockGetEnvPrivateKey.mockImplementation(
+      () => '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
+    );
     mockPrivateKeyToAccount.mockImplementation(() => mockAccount);
   });
 
@@ -75,7 +77,7 @@ describe('getDecryptionKey module', () => {
     it('should convert hex string to Uint8Array', () => {
       const hex = '0x48656c6c6f';
       const result = hexToUint8Array(hex);
-      
+
       expect(result).toBeInstanceOf(Uint8Array);
       expect(Array.from(result)).toEqual([72, 101, 108, 108, 111]); // "Hello" in bytes
     });
@@ -83,20 +85,20 @@ describe('getDecryptionKey module', () => {
     it('should handle hex without 0x prefix', () => {
       const hex = '48656c6c6f' as any;
       const result = hexToUint8Array(hex);
-      
+
       expect(Array.from(result)).toEqual([72, 101, 108, 108, 111]);
     });
 
     it('should throw error for odd length hex', () => {
       const oddHex = '0x123';
-      
+
       expect(() => hexToUint8Array(oddHex)).toThrow('Received an hex value with odd length');
     });
 
     it('should handle empty hex string', () => {
       const emptyHex = '0x';
       const result = hexToUint8Array(emptyHex);
-      
+
       expect(result).toEqual(new Uint8Array(0));
     });
 
@@ -119,7 +121,7 @@ describe('getDecryptionKey module', () => {
     it('should compute public key from secret key', () => {
       const secretKey = new Uint8Array([1, 2, 3, 4, 5]);
       const expectedPublicKey = new Uint8Array([6, 7, 8, 9, 10]);
-      
+
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(expectedPublicKey);
 
       const result = computePublicKey(secretKey);
@@ -132,7 +134,7 @@ describe('getDecryptionKey module', () => {
   describe('DETERMINISTIC_EMERGENCY_PAYLOAD', () => {
     it('should have correct deterministic message', () => {
       expect(DETERMINISTIC_EMERGENCY_PAYLOAD).toBe(
-        'This text is used to generate an encryption key to be used on private proposals targetting the Taiko DAO.\n\nSign this message ONLY if you are about to create, approve or execute a emergency proposal using the official Taiko app.'
+        'This text is used to generate an encryption key to be used on private proposals targetting the Taiko DAO.\n\nSign this message ONLY if you are about to create, approve or execute a emergency proposal using the official Taiko app.',
       );
     });
   });
@@ -140,9 +142,7 @@ describe('getDecryptionKey module', () => {
   describe.skip('getDecryptionKey', () => {
     beforeEach(() => {
       mockToHex.mockReturnValue('0xabcdef1234567890');
-      mockKeccak256
-        .mockReturnValueOnce('0xhashedmessage1234567890')
-        .mockReturnValueOnce('0xhashedsignature1234567890');
+      mockKeccak256.mockReturnValueOnce('0xhashedmessage1234567890').mockReturnValueOnce('0xhashedsignature1234567890');
       mockAccount.signMessage.mockResolvedValue('0xsignature1234567890');
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(new Uint8Array([1, 2, 3, 4, 5]));
     });
@@ -151,7 +151,9 @@ describe('getDecryptionKey module', () => {
       const result = await getDecryptionKey(mockConfig);
 
       expect(mockGetEnvPrivateKey).toHaveBeenCalledWith(mockConfig);
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12');
+      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
+      );
       expect(mockAccount.signMessage).toHaveBeenCalledWith({
         message: DETERMINISTIC_EMERGENCY_PAYLOAD,
       });
@@ -232,9 +234,7 @@ describe('getDecryptionKey module', () => {
       mockDecryptProposal.mockReturnValue(mockDecryptedResult);
 
       // Mock decodeAbiParameters
-      const mockDecodeAbiParameters = jest.fn().mockReturnValue([
-        [{ to: '0x123', value: '1000', data: '0xabc' }]
-      ]);
+      const mockDecodeAbiParameters = jest.fn().mockReturnValue([[{ to: '0x123', value: '1000', data: '0xabc' }]]);
       jest.doMock('viem', () => ({
         ...jest.requireActual('viem'),
         decodeAbiParameters: mockDecodeAbiParameters,
@@ -247,14 +247,14 @@ describe('getDecryptionKey module', () => {
         expect.objectContaining({
           privateKey: expect.any(Uint8Array),
           publicKey: expect.any(Uint8Array),
-        })
+        }),
       );
       expect(mockDecryptProposal).toHaveBeenCalledWith(
         {
           metadata: 'encryptedMetadataHex',
           actions: 'encryptedActionsHex',
         },
-        mockSymmetricKey
+        mockSymmetricKey,
       );
       expect(result).toEqual(mockDecryptedResult.metadata);
     });
@@ -308,12 +308,8 @@ describe('getDecryptionKey module', () => {
 
       // Verify that symmetric keys were converted from hex
       expect(mockDecryptSymmetricKey).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.any(Uint8Array),
-          expect.any(Uint8Array), 
-          expect.any(Uint8Array),
-        ]),
-        expect.any(Object)
+        expect.arrayContaining([expect.any(Uint8Array), expect.any(Uint8Array), expect.any(Uint8Array)]),
+        expect.any(Object),
       );
     });
 
@@ -332,7 +328,7 @@ describe('getDecryptionKey module', () => {
     it('should handle proposal decryption errors', async () => {
       const mockSymmetricKey = new Uint8Array([1, 2, 3, 4]);
       const proposalDecryptionError = new Error('Proposal decryption failed');
-      
+
       mockDecryptSymmetricKey.mockReturnValue(mockSymmetricKey);
       mockDecryptProposal.mockImplementation(() => {
         throw proposalDecryptionError;
@@ -383,11 +379,9 @@ describe('getDecryptionKey module', () => {
     it('should handle end-to-end key derivation workflow', async () => {
       // Test the complete workflow from config to derived keys
       mockToHex.mockReturnValue('0xpayloadhex');
-      mockKeccak256
-        .mockReturnValueOnce('0xhashedpayload')
-        .mockReturnValueOnce('0xhashedsignature');
+      mockKeccak256.mockReturnValueOnce('0xhashedpayload').mockReturnValueOnce('0xhashedsignature');
       mockAccount.signMessage.mockResolvedValue('0xvalidsignature');
-      
+
       const expectedPublicKey = new Uint8Array([10, 20, 30]);
       (sodium.crypto_scalarmult_base as jest.Mock).mockReturnValue(expectedPublicKey);
 

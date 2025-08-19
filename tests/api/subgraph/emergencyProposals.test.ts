@@ -1,4 +1,7 @@
-import { getEmergencyProposalsFromSubgraph, getEmergencyProposalFromSubgraph } from '../../../src/api/subgraph/emergencyProposals';
+import {
+  getEmergencyProposalsFromSubgraph,
+  getEmergencyProposalFromSubgraph,
+} from '../../../src/api/subgraph/emergencyProposals';
 import { INetworkConfig } from '../../../src/types/network.type';
 
 // Mock fetch globally
@@ -49,7 +52,7 @@ describe('Emergency Proposals Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f31',
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator1',
             },
           ],
@@ -58,7 +61,7 @@ describe('Emergency Proposals Subgraph API', () => {
               id: '1',
               encryptedPayloadURI: '0x656e637279707465645f646174615f31',
               creator: '0xcreator1',
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creationBlockNumber: '1234567890',
             },
           ],
@@ -81,7 +84,7 @@ describe('Emergency Proposals Subgraph API', () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
 
       await expect(getEmergencyProposalFromSubgraph(1, configWithoutSubgraph)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config'
+        'Subgraph endpoint is not defined in network config',
       );
     });
 
@@ -139,7 +142,7 @@ describe('Emergency Proposals Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f31',
               creationBlockNumber: '1234567890',
               executionBlockNumber: '1234567900',
-              approvers: [{id: '0x1'}],
+              approvers: [{ id: '0x1' }],
               creator: '0xcreator1',
             },
           ],
@@ -168,7 +171,7 @@ describe('Emergency Proposals Subgraph API', () => {
               id: '1',
               encryptedPayloadURI: '0x656e637279707465645f646174615f31',
               creator: '0xcreator1',
-              approvers: [{id: '0x1'}],
+              approvers: [{ id: '0x1' }],
               creationBlockNumber: '1234567890',
             },
           ],
@@ -246,7 +249,7 @@ describe('Emergency Proposals Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f31',
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}],
+              approvers: [{ id: '0x1' }],
               creator: '0xcreator1',
             },
             {
@@ -254,7 +257,7 @@ describe('Emergency Proposals Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f32',
               creationBlockNumber: '1234567891',
               executionBlockNumber: '1234567900',
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator2',
             },
           ],
@@ -263,14 +266,14 @@ describe('Emergency Proposals Subgraph API', () => {
               id: '1',
               encryptedPayloadURI: '0x656e637279707465645f646174615f31',
               creator: '0xcreator1',
-              approvers: [{id: '0x1'}],
+              approvers: [{ id: '0x1' }],
               creationBlockNumber: '1234567890',
             },
             {
               id: '2',
               encryptedPayloadURI: '0x656e637279707465645f646174615f32',
               creator: '0xcreator2',
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creationBlockNumber: '1234567891',
             },
           ],

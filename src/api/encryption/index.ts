@@ -1,16 +1,16 @@
-import libsodium from "libsodium-wrappers";
+import libsodium from 'libsodium-wrappers';
 import {
   generateSymmetricKey,
   encrypt as symmetricEncrypt,
   decryptString as symmetricDecryptString,
   decryptBytes as symmetricDecryptBytes,
-} from "./symmetric";
-import { encrypt as asymmetricEncrypt, decryptBytes as asymmetricDecryptBytes, KeyPair } from "./asymmetric";
+} from './symmetric';
+import { encrypt as asymmetricEncrypt, decryptBytes as asymmetricDecryptBytes, KeyPair } from './asymmetric';
 // General types
 type JsonLiteral = string | number | boolean;
 export type JsonValue = JsonLiteral | { [k: string]: JsonValue } | JsonValue[];
 
-export type { KeyPair } from "./asymmetric";
+export type { KeyPair } from './asymmetric';
 export type SymmetricKey = Uint8Array;
 
 export function encryptProposal(strMetadata: string, actionBytes: Uint8Array) {
@@ -46,7 +46,7 @@ export function encryptSymmetricKey(symKey: Uint8Array, recipientPubKeys: Uint8A
  * @param keyPair An object with the private and public keys
  * @returns
  */
-export function decryptSymmetricKey(encryptedItems: Uint8Array[], keyPair: KeyPair | Omit<KeyPair, "keyType">) {
+export function decryptSymmetricKey(encryptedItems: Uint8Array[], keyPair: KeyPair | Omit<KeyPair, 'keyType'>) {
   for (const item of encryptedItems) {
     try {
       // Attempt to decrypt, continue on fail
@@ -62,13 +62,13 @@ export function decryptSymmetricKey(encryptedItems: Uint8Array[], keyPair: KeyPa
 
 export function decryptProposal<T = JsonValue>(
   data: { metadata: string; actions: string },
-  symmetricKey: SymmetricKey
+  symmetricKey: SymmetricKey,
 ): {
   metadata: T;
   rawMetadata: string;
   rawActions: Uint8Array;
 } {
-  if (!data.metadata || !data.actions) throw new Error("Empty data");
+  if (!data.metadata || !data.actions) throw new Error('Empty data');
 
   const rawMetadata = symmetricDecryptString(libsodium.from_base64(data.metadata), symmetricKey);
   const rawActions = symmetricDecryptBytes(libsodium.from_base64(data.actions), symmetricKey);

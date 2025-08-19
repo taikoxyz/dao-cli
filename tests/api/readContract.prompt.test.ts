@@ -33,7 +33,7 @@ describe('readContractPrompt', () => {
   it('should display the correct contract name when contract is found', async () => {
     const targetContract = '0x1234567890123456789012345678901234567890' as Address;
     const mockSelect = select as jest.MockedFunction<typeof select>;
-    
+
     mockSelect.mockResolvedValueOnce('read');
 
     await readContractPrompt(mockConfig, targetContract);
@@ -52,7 +52,7 @@ describe('readContractPrompt', () => {
   it('should display "Unknown Contract" when contract is not found', async () => {
     const targetContract = '0xffffffffffffffffffffffffffffffffffffffff' as Address;
     const mockSelect = select as jest.MockedFunction<typeof select>;
-    
+
     mockSelect.mockResolvedValueOnce('read');
 
     await readContractPrompt(mockConfig, targetContract);
@@ -71,7 +71,7 @@ describe('readContractPrompt', () => {
   it('should find MultisigPlugin contract correctly', async () => {
     const targetContract = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Address;
     const mockSelect = select as jest.MockedFunction<typeof select>;
-    
+
     mockSelect.mockResolvedValueOnce('read');
 
     await readContractPrompt(mockConfig, targetContract);
@@ -91,7 +91,7 @@ describe('readContractPrompt', () => {
     // Use a valid checksummed address
     const targetContract = '0x1234567890123456789012345678901234567890' as Address;
     const mockSelect = select as jest.MockedFunction<typeof select>;
-    
+
     mockSelect.mockResolvedValueOnce('read');
 
     await readContractPrompt(mockConfig, targetContract);

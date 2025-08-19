@@ -20,7 +20,7 @@ describe('connectEnvWallet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       network: 'holesky',
       urls: {
@@ -177,7 +177,7 @@ describe('connectEnvWallet', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           account: mockAccount,
-        })
+        }),
       );
     });
 
@@ -190,7 +190,7 @@ describe('connectEnvWallet', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           transport: http(mockConfig.urls.rpc),
-        })
+        }),
       );
     });
   });
@@ -230,7 +230,7 @@ describe('connectEnvWallet', () => {
     it('should prioritize correct environment variable based on network', async () => {
       const holeskyKey = '0x1111111111111111111111111111111111111111111111111111111111111111';
       const mainnetKey = '0x2222222222222222222222222222222222222222222222222222222222222222';
-      
+
       process.env.HOLESKY_PRIVATE_KEY = holeskyKey;
       process.env.MAINNET_PRIVATE_KEY = mainnetKey;
 
@@ -253,7 +253,7 @@ describe('connectEnvWallet', () => {
     it('should handle complete workflow for holesky network', async () => {
       const privateKey = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       process.env.HOLESKY_PRIVATE_KEY = privateKey;
-      
+
       const result = await connectEnvWallet(mockConfig);
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);
@@ -270,7 +270,7 @@ describe('connectEnvWallet', () => {
       const privateKey = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       process.env.MAINNET_PRIVATE_KEY = privateKey;
       mockConfig.network = 'mainnet';
-      
+
       const result = await connectEnvWallet(mockConfig);
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);

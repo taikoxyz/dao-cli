@@ -82,7 +82,7 @@ describe('interactWithContractPrompt', () => {
       mockConfig,
       'TestContract',
       '0x1234567890123456789012345678901234567890' as Address,
-      mockAbi
+      mockAbi,
     );
 
     expect(mockSelect).toHaveBeenCalledWith({
@@ -111,9 +111,9 @@ describe('interactWithContractPrompt', () => {
   it('should execute read method without parameters', async () => {
     const mockSelect = select as jest.MockedFunction<typeof select>;
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    
+
     mockSelect.mockResolvedValueOnce('totalSupply');
-    
+
     const mockReadContract = jest.fn().mockResolvedValue('1000000000000000000');
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -123,7 +123,7 @@ describe('interactWithContractPrompt', () => {
       mockConfig,
       'TestContract',
       '0x1234567890123456789012345678901234567890' as Address,
-      mockAbi
+      mockAbi,
     );
 
     expect(mockGetPublicClient).toHaveBeenCalledWith(mockConfig);
@@ -143,11 +143,11 @@ describe('interactWithContractPrompt', () => {
       mockConfig,
       'TestContract',
       '0x1234567890123456789012345678901234567890' as Address,
-      mockAbi
+      mockAbi,
     );
 
     expect(console.error).toHaveBeenCalledWith(
-      `⚠️ Methods with parameters not supported yet. Please interact via ${mockConfig.urls.explorer} instead.`
+      `⚠️ Methods with parameters not supported yet. Please interact via ${mockConfig.urls.explorer} instead.`,
     );
     expect(result).toBeUndefined();
   });
@@ -160,11 +160,11 @@ describe('interactWithContractPrompt', () => {
       mockConfig,
       'TestContract',
       '0x1234567890123456789012345678901234567890' as Address,
-      mockAbi
+      mockAbi,
     );
 
     expect(console.error).toHaveBeenCalledWith(
-      `⚠️ Methods with parameters not supported yet. Please interact via ${mockConfig.urls.explorer} instead.`
+      `⚠️ Methods with parameters not supported yet. Please interact via ${mockConfig.urls.explorer} instead.`,
     );
     expect(result).toBeUndefined();
   });
@@ -188,8 +188,8 @@ describe('interactWithContractPrompt', () => {
         mockConfig,
         'TestContract',
         '0x1234567890123456789012345678901234567890' as Address,
-        invalidAbi
-      )
+        invalidAbi,
+      ),
     ).rejects.toThrow('Method nonExistentMethod is not a valid read or write method.');
   });
 
@@ -202,8 +202,8 @@ describe('interactWithContractPrompt', () => {
         mockConfig,
         'TestContract',
         '0x1234567890123456789012345678901234567890' as Address,
-        []
-      )
+        [],
+      ),
     ).rejects.toThrow('Method nonExistentMethod is not a valid read or write method.');
   });
 
@@ -240,7 +240,7 @@ describe('interactWithContractPrompt', () => {
       mockConfig,
       'TestContract',
       '0x1234567890123456789012345678901234567890' as Address,
-      abiWithEvents
+      abiWithEvents,
     );
 
     expect(mockSelect).toHaveBeenCalledWith({
