@@ -5,6 +5,18 @@ import { ABIs } from '../../../../src/abi';
 import { getNetworkCache } from '../../../../src/api/cache';
 import { INetworkConfig } from '../../../../src/types/network.type';
 
+// Test interfaces (commented out MockPublicClient to fix linter warning)
+// interface MockPublicClient {
+//   readContract: jest.Mock;
+//   getBlockNumber?: jest.Mock;
+// }
+
+interface MockCache {
+  has: jest.Mock;
+  get: jest.Mock;
+  set: jest.Mock;
+}
+
 // Mock dependencies
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/cache', () => ({
@@ -12,7 +24,7 @@ jest.mock('../../../../src/api/cache', () => ({
     has: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
-  }))
+  })),
 }));
 jest.mock('../../../../src/abi');
 
@@ -22,7 +34,7 @@ const mockGetNetworkCache = getNetworkCache as jest.MockedFunction<typeof getNet
 describe('getSecurityCouncilMembers', () => {
   let mockConfig: INetworkConfig;
   let mockClient: Record<string, unknown>;
-  let mockCache: any;
+  let mockCache: MockCache;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -32,10 +44,11 @@ describe('getSecurityCouncilMembers', () => {
       get: jest.fn(),
       set: jest.fn(),
     };
-    mockGetNetworkCache.mockReturnValue(mockCache);
+    mockGetNetworkCache.mockReturnValue(mockCache as any);
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -105,7 +118,7 @@ describe('getSecurityCouncilMembers', () => {
       expect(mockCache.has).toHaveBeenCalledWith('signerList');
       expect(mockCache.get).toHaveBeenCalledWith('signerList');
       expect(result).toEqual(cachedData);
-      expect((mockClient.readContract as jest.Mock)).not.toHaveBeenCalled();
+      expect(mockClient.readContract as unknown).not.toHaveBeenCalled();
     });
 
     it('should fetch fresh data when cache is empty', async () => {
@@ -121,23 +134,23 @@ describe('getSecurityCouncilMembers', () => {
         '0x4444444444444444444444444444444444444444' as Address,
       ];
 
-      ((mockClient.readContract as jest.Mock) as jest.Mock)
+      (mockClient.readContract as unknown as jest.Mock)
         .mockResolvedValueOnce(mockSigners) // getEncryptionAgents
         .mockResolvedValueOnce(mockOwners[0]) // getListedEncryptionOwnerAtBlock for first signer
         .mockResolvedValueOnce(mockOwners[1]); // getListedEncryptionOwnerAtBlock for second signer
 
-      ((mockClient.getBlockNumber as jest.Mock) as jest.Mock).mockResolvedValue(1000n);
+      (mockClient.getBlockNumber as jest.Mock as jest.Mock).mockResolvedValue(1000n);
 
       const result = await getSecurityCouncilMembers(mockConfig);
 
       expect(mockCache.has).toHaveBeenCalledWith('signerList');
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
+      expect(mockClient.readContract as unknown).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getEncryptionAgents',
         args: [],
       });
-      expect((mockClient.getBlockNumber as jest.Mock)).toHaveBeenCalled();
+      expect(mockClient.getBlockNumber as jest.Mock).toHaveBeenCalled();
       expect(result).toEqual([
         { owner: mockOwners[0], signer: mockSigners[0] },
         { owner: mockOwners[1], signer: mockSigners[1] },
@@ -159,7 +172,7 @@ describe('getSecurityCouncilMembers', () => {
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
+      expect(mockClient.readContract as unknown).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getEncryptionAgents',
@@ -176,8 +189,8 @@ describe('getSecurityCouncilMembers', () => {
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect((mockClient.getBlockNumber as jest.Mock)).toHaveBeenCalled();
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
+      expect(mockClient.getBlockNumber as jest.Mock).toHaveBeenCalled();
+      expect(mockClient.readContract as unknown).toHaveBeenCalledWith({
         address: mockConfig.contracts.SignerList,
         abi: ABIs.SignerList,
         functionName: 'getListedEncryptionOwnerAtBlock',
@@ -206,10 +219,10 @@ describe('getSecurityCouncilMembers', () => {
 
       await getSecurityCouncilMembers(mockConfig);
 
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledTimes(4); // 1 for getEncryptionAgents + 3 for owners
+      expect(mockClient.readContract as unknown).toHaveBeenCalledTimes(4); // 1 for getEncryptionAgents + 3 for owners
 
       mockSigners.forEach((signer) => {
-        expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
+        expect(mockClient.readContract as unknown).toHaveBeenCalledWith({
           address: mockConfig.contracts.SignerList,
           abi: ABIs.SignerList,
           functionName: 'getListedEncryptionOwnerAtBlock',
@@ -225,7 +238,7 @@ describe('getSecurityCouncilMembers', () => {
       const result = await getSecurityCouncilMembers(mockConfig);
 
       expect(result).toEqual([]);
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledTimes(1); // Only getEncryptionAgents
+      expect(mockClient.readContract as unknown).toHaveBeenCalledTimes(1); // Only getEncryptionAgents
     });
   });
 
@@ -253,7 +266,7 @@ describe('getSecurityCouncilMembers', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error fetching owner for signer'),
-        expect.any(Error),
+        expect.any(Error) as Error,
       );
 
       // Should continue processing other signers
@@ -332,7 +345,7 @@ describe('getSecurityCouncilMembers', () => {
       // Cache should be set twice, once after each successful owner fetch
       expect(mockCache.set).toHaveBeenCalledTimes(2);
       // Due to the implementation appending to the array each time, we just check that it was called
-      expect(mockCache.set).toHaveBeenCalledWith('signerList', expect.any(Array));
+      expect(mockCache.set).toHaveBeenCalledWith('signerList', expect.any(Array) as unknown[]);
     });
   });
 

@@ -18,6 +18,7 @@ describe('encryptEmergencyProposal', () => {
   beforeEach(() => {
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -79,7 +80,8 @@ describe('encryptEmergencyProposal', () => {
     const mockIpfsHash = 'QmTestHash123';
 
     const mockPublicClient = {
-      readContract: jest.fn()
+      readContract: jest
+        .fn()
         .mockResolvedValueOnce(['0xagent1', mockPublicKeys[0]])
         .mockResolvedValueOnce(['0xagent2', mockPublicKeys[1]]),
     };
@@ -129,9 +131,13 @@ describe('encryptEmergencyProposal', () => {
     ];
 
     const mockPublicClient = {
-      readContract: jest.fn()
+      readContract: jest
+        .fn()
         .mockResolvedValueOnce(['0xagent1', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'])
-        .mockResolvedValueOnce(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000000000000000000000000000']),
+        .mockResolvedValueOnce([
+          '0x0000000000000000000000000000000000000000',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        ]),
     };
 
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
@@ -183,7 +189,12 @@ describe('encryptEmergencyProposal', () => {
     ];
 
     const mockPublicClient = {
-      readContract: jest.fn().mockResolvedValue(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000000000000000000000000000']),
+      readContract: jest
+        .fn()
+        .mockResolvedValue([
+          '0x0000000000000000000000000000000000000000',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        ]),
     };
 
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
@@ -213,7 +224,9 @@ describe('encryptEmergencyProposal', () => {
     ];
 
     const mockPublicClient = {
-      readContract: jest.fn().mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
+      readContract: jest
+        .fn()
+        .mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
     };
 
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
@@ -245,7 +258,9 @@ describe('encryptEmergencyProposal', () => {
     ];
 
     const mockPublicClient = {
-      readContract: jest.fn().mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
+      readContract: jest
+        .fn()
+        .mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
     };
 
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
@@ -273,9 +288,13 @@ describe('encryptEmergencyProposal', () => {
     ];
 
     const mockPublicClient = {
-      readContract: jest.fn()
+      readContract: jest
+        .fn()
         .mockResolvedValueOnce(['0xagent1', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'])
-        .mockResolvedValueOnce(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000000000000000000000000000'])
+        .mockResolvedValueOnce([
+          '0x0000000000000000000000000000000000000000',
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+        ])
         .mockResolvedValueOnce(['0xagent3', '0x2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef']),
     };
 
@@ -317,12 +336,12 @@ describe('encryptEmergencyProposal', () => {
         data: '0xdata2' as `0x${string}`,
       },
     ];
-    const mockMembers = [
-      { owner: '0xowner1' as `0x${string}`, signer: '0xsigner1' as `0x${string}` },
-    ];
+    const mockMembers = [{ owner: '0xowner1' as `0x${string}`, signer: '0xsigner1' as `0x${string}` }];
 
     const mockPublicClient = {
-      readContract: jest.fn().mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
+      readContract: jest
+        .fn()
+        .mockResolvedValue(['0xagent', '0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef']),
     };
 
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
@@ -337,9 +356,6 @@ describe('encryptEmergencyProposal', () => {
     const result = await encryptEmergencyProposal(mockConfig, metadata, actions);
 
     expect(result).toBeDefined();
-    expect(encryptionModule.encryptProposal).toHaveBeenCalledWith(
-      JSON.stringify(metadata),
-      expect.any(Uint8Array),
-    );
+    expect(encryptionModule.encryptProposal).toHaveBeenCalledWith(JSON.stringify(metadata), expect.any(Uint8Array));
   });
 });

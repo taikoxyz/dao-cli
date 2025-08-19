@@ -3,6 +3,7 @@ import getStandardProposal from '../../../../src/api/dao/standard-proposal/getSt
 import { getPublicClient } from '../../../../src/api/viem';
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { Address } from 'viem';
+// Removed unused imports: MockPublicClient, MockProposal
 
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/dao/standard-proposal/getStandardProposal');
@@ -10,6 +11,7 @@ jest.mock('../../../../src/api/dao/standard-proposal/getStandardProposal');
 describe('getStandardProposals', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x0000000000000000000000000000000000000001' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,
@@ -61,7 +63,7 @@ describe('getStandardProposals', () => {
     const result = await getStandardProposals(mockConfig);
 
     expect(mockReadContract).toHaveBeenCalledWith({
-      abi: expect.any(Array),
+      abi: expect.any(Array) as any[],
       address: mockConfig.contracts.MultisigPlugin,
       functionName: 'proposalCount',
       args: [],
@@ -149,7 +151,7 @@ describe('getStandardProposals', () => {
 
     const result = await getStandardProposals(mockConfig);
 
-    expect(console.error).toHaveBeenCalledWith(expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(expect.any(Error) as any);
     expect(result).toBeUndefined();
   });
 
@@ -188,9 +190,7 @@ describe('getStandardProposals', () => {
     delays.forEach((delay, index) => {
       mockGetStandardProposal.mockImplementationOnce(
         () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay),
-          ),
+          new Promise((resolve) => setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay)),
       );
     });
 

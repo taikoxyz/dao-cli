@@ -1,4 +1,7 @@
-import { approveStandardProposal, approveEmergencyProposal } from '../../../../src/api/dao/security-council/approveProposal';
+import {
+  approveStandardProposal,
+  approveEmergencyProposal,
+} from '../../../../src/api/dao/security-council/approveProposal';
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { WalletClient, PublicClient } from 'viem';
 
@@ -12,6 +15,7 @@ describe('approveProposal', () => {
   beforeEach(() => {
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -31,9 +35,7 @@ describe('approveProposal', () => {
     };
 
     mockWalletClient = {
-      account: {
-        address: '0xuser1234567890abcdef1234567890abcdef1234' as `0x${string}`,
-      } as any,
+      account: undefined,
       writeContract: jest.fn(),
     };
 
@@ -56,13 +58,13 @@ describe('approveProposal', () => {
     it('should successfully approve a standard proposal', async () => {
       const proposalId = 1;
       const txHash = '0xtxhash123';
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockResolvedValue(txHash);
-      
+
       (mockPublicClient.waitForTransactionReceipt as jest.Mock).mockResolvedValue({
         status: 'success',
       });
@@ -79,7 +81,7 @@ describe('approveProposal', () => {
       expect(consoleInfoSpy).toHaveBeenCalledWith(`Successfully approved standard proposal ${proposalId}`);
       expect(mockPublicClient.simulateContract).toHaveBeenCalledWith({
         address: mockConfig.contracts.MultisigPlugin,
-        abi: expect.any(Array),
+        abi: expect.any(Array) as unknown[],
         functionName: 'approve',
         args: [proposalId, false],
         account: mockWalletClient.account,
@@ -88,13 +90,13 @@ describe('approveProposal', () => {
 
     it('should throw error when transaction fails', async () => {
       const proposalId = 2;
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockResolvedValue('0xtxhash456');
-      
+
       (mockPublicClient.waitForTransactionReceipt as jest.Mock).mockResolvedValue({
         status: 'reverted',
       });
@@ -108,13 +110,13 @@ describe('approveProposal', () => {
         ),
       ).rejects.toThrow('Transaction failed');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to approve standard proposal:', expect.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to approve standard proposal:', expect.any(Error) as Error);
     });
 
     it('should handle simulation errors', async () => {
       const proposalId = 3;
       const error = new Error('Simulation failed');
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockRejectedValue(error);
 
       await expect(
@@ -132,11 +134,11 @@ describe('approveProposal', () => {
     it('should handle write contract errors', async () => {
       const proposalId = 4;
       const error = new Error('Write failed');
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockRejectedValue(error);
 
       await expect(
@@ -156,13 +158,13 @@ describe('approveProposal', () => {
     it('should successfully approve an emergency proposal', async () => {
       const proposalId = 5;
       const txHash = '0xtxhash789';
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockResolvedValue(txHash);
-      
+
       (mockPublicClient.waitForTransactionReceipt as jest.Mock).mockResolvedValue({
         status: 'success',
       });
@@ -179,7 +181,7 @@ describe('approveProposal', () => {
       expect(consoleInfoSpy).toHaveBeenCalledWith(`Successfully approved emergency proposal ${proposalId}`);
       expect(mockPublicClient.simulateContract).toHaveBeenCalledWith({
         address: mockConfig.contracts.EmergencyMultisigPlugin,
-        abi: expect.any(Array),
+        abi: expect.any(Array) as unknown[],
         functionName: 'approve',
         args: [proposalId],
         account: mockWalletClient.account,
@@ -188,13 +190,13 @@ describe('approveProposal', () => {
 
     it('should throw error when emergency transaction fails', async () => {
       const proposalId = 6;
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockResolvedValue('0xtxhash101');
-      
+
       (mockPublicClient.waitForTransactionReceipt as jest.Mock).mockResolvedValue({
         status: 'reverted',
       });
@@ -208,13 +210,13 @@ describe('approveProposal', () => {
         ),
       ).rejects.toThrow('Transaction failed');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to approve emergency proposal:', expect.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to approve emergency proposal:', expect.any(Error) as Error);
     });
 
     it('should handle emergency simulation errors', async () => {
       const proposalId = 7;
       const error = new Error('Emergency simulation failed');
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockRejectedValue(error);
 
       await expect(
@@ -232,11 +234,11 @@ describe('approveProposal', () => {
     it('should handle emergency write contract errors', async () => {
       const proposalId = 8;
       const error = new Error('Emergency write failed');
-      
+
       (mockPublicClient.simulateContract as jest.Mock).mockResolvedValue({
         request: { data: 'mockRequest' },
       });
-      
+
       (mockWalletClient.writeContract as jest.Mock).mockRejectedValue(error);
 
       await expect(

@@ -88,12 +88,10 @@ export default async function getDelegates(config: INetworkConfig): Promise<Dele
             profile.metadata = metadata;
             // Extract identifier from metadata if available - check 'identifier' field first
             if (metadata && typeof metadata === 'object') {
-              profile.identifier = (
-                (metadata as Record<string, unknown>).identifier ||
+              profile.identifier = ((metadata as Record<string, unknown>).identifier ||
                 (metadata as Record<string, unknown>).name ||
                 (metadata as Record<string, unknown>).title ||
-                (metadata as Record<string, unknown>).displayName
-              ) as string | undefined;
+                (metadata as Record<string, unknown>).displayName) as string | undefined;
               if (!profile.identifier) {
                 console.warn(`No identifier found in metadata for ${address}`);
               }
@@ -162,12 +160,10 @@ export async function getDelegate(
         profile.metadata = metadata;
         // Extract identifier from metadata if available - check 'identifier' field first
         if (metadata && typeof metadata === 'object') {
-          profile.identifier = (
-            (metadata as Record<string, unknown>).identifier ||
+          profile.identifier = ((metadata as Record<string, unknown>).identifier ||
             (metadata as Record<string, unknown>).name ||
             (metadata as Record<string, unknown>).title ||
-            (metadata as Record<string, unknown>).displayName
-          ) as string | undefined;
+            (metadata as Record<string, unknown>).displayName) as string | undefined;
         }
       } catch (error) {
         console.error(`Error fetching IPFS metadata for delegate ${address}:`, error);

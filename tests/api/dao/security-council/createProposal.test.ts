@@ -3,7 +3,6 @@ import { INetworkConfig } from '../../../../src/types/network.type';
 import { WalletClient, PublicClient } from 'viem';
 import * as encryptProposal from '../../../../src/api/dao/security-council/encryptProposal';
 import * as pinToIpfs from '../../../../src/api/ipfs/pinToIpfs';
-import { ABIs } from '../../../../src/abi';
 
 jest.mock('../../../../src/api/dao/security-council/encryptProposal');
 jest.mock('../../../../src/api/ipfs/pinToIpfs');
@@ -18,6 +17,7 @@ describe('createProposal', () => {
   beforeEach(() => {
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -37,9 +37,7 @@ describe('createProposal', () => {
     };
 
     mockWalletClient = {
-      account: {
-        address: '0xuser1234567890abcdef1234567890abcdef1234' as `0x${string}`,
-      } as any,
+      account: undefined,
       writeContract: jest.fn(),
     };
 
@@ -158,7 +156,7 @@ describe('createProposal', () => {
         ),
       ).rejects.toThrow('Transaction failed');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create proposal:', expect.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create proposal:', expect.any(Error) as Error);
     });
 
     it('should handle simulation errors', async () => {
@@ -292,7 +290,7 @@ describe('createProposal', () => {
         ),
       ).rejects.toThrow('Transaction failed');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create proposal:', expect.any(Error));
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create proposal:', expect.any(Error) as Error);
     });
   });
 
@@ -317,23 +315,23 @@ describe('createProposal', () => {
 
       expect(result).toEqual({
         to: contractAddress,
-        value: value,
+        value,
         data: expect.stringMatching(/^0x[a-fA-F0-9]+$/),
       });
     });
 
     it('should encode action with value', () => {
       const contractAddress = '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`;
-      const abi: any[] = [
+      const abi: Array<Record<string, unknown>> = [
         {
           name: 'transfer',
           type: 'function',
           inputs: [
             { name: 'to', type: 'address' },
-            { name: 'amount', type: 'uint256' }
+            { name: 'amount', type: 'uint256' },
           ],
-          outputs: []
-        }
+          outputs: [],
+        },
       ];
       const functionName = 'transfer';
       const args = ['0xabcdef1234567890abcdef1234567890abcdef12', 100n];
@@ -343,7 +341,7 @@ describe('createProposal', () => {
 
       expect(result).toEqual({
         to: contractAddress,
-        value: value,
+        value,
         data: expect.any(String),
       });
     });

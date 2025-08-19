@@ -14,7 +14,7 @@ describe('pinJsonToIpfs', () => {
     consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-    
+
     // Mock environment variables
     process.env.PINATA_JWT = 'test-jwt-token';
   });
@@ -75,7 +75,7 @@ describe('pinJsonToIpfs', () => {
   it('should handle API errors', async () => {
     const testData = { test: 'data' };
     const error = new Error('API Error');
-    
+
     mockAxios.post.mockRejectedValue(error);
 
     await expect(pinJsonToIpfs(testData)).rejects.toThrow('Failed to pin to Pinata: API Error');
@@ -89,7 +89,7 @@ describe('pinJsonToIpfs', () => {
         data: { error: 'Unauthorized' },
       },
     };
-    
+
     mockAxios.post.mockRejectedValue(error);
 
     await expect(pinJsonToIpfs(testData)).rejects.toThrow('Invalid Pinata credentials. Please check your PINATA_JWT.');
@@ -117,7 +117,7 @@ describe('pinJsonToIpfs', () => {
       expect.objectContaining({
         pinataContent: largeData,
       }),
-      expect.any(Object),
+      expect.any(Object) as unknown,
     );
   });
 
@@ -178,7 +178,7 @@ describe('pinJsonToIpfs', () => {
       expect.objectContaining({
         pinataContent: complexJson,
       }),
-      expect.any(Object),
+      expect.any(Object) as unknown,
     );
   });
 
@@ -209,7 +209,7 @@ describe('pinJsonToIpfs', () => {
         data: { error: 'Rate limit exceeded' },
       },
     };
-    
+
     mockAxios.post.mockRejectedValue(rateLimitError);
 
     await expect(pinJsonToIpfs(testJson)).rejects.toThrow('Pinata rate limit exceeded. Please wait and try again.');
@@ -221,7 +221,7 @@ describe('pinJsonToIpfs', () => {
       code: 'ECONNABORTED',
       message: 'timeout of 10000ms exceeded',
     };
-    
+
     mockAxios.post.mockRejectedValue(timeoutError);
 
     await expect(pinJsonToIpfs(testJson)).rejects.toThrow('Failed to pin to Pinata: timeout of 10000ms exceeded');
@@ -241,7 +241,7 @@ describe('pinJsonToIpfs', () => {
     await pinJsonToIpfs(testData);
 
     const afterTime = Date.now();
-    
+
     expect(mockAxios.post).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -249,10 +249,10 @@ describe('pinJsonToIpfs', () => {
           name: expect.stringMatching(/^proposal-\d+$/),
         },
       }),
-      expect.any(Object),
+      expect.any(Object) as unknown,
     );
 
-    const calledData = mockAxios.post.mock.calls[0][1] as any;
+    const calledData = mockAxios.post.mock.calls[0][1] as { pinataMetadata: { name: string } };
     const timestamp = parseInt(calledData.pinataMetadata.name.split('-')[1]);
     expect(timestamp).toBeGreaterThanOrEqual(beforeTime);
     expect(timestamp).toBeLessThanOrEqual(afterTime);

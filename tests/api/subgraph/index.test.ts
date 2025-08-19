@@ -5,6 +5,7 @@ import { getSecurityCouncilMembersFromSubgraph } from '../../../src/api/subgraph
 import { fetchPublicProposalsFromSubgraph, fetchAllPublicProposalsFromSubgraph } from '../../../src/api/subgraph/index';
 import { INetworkConfig } from '../../../src/types/network.type';
 import { getNetworkCache } from '../../../src/api/cache';
+import { MockFetch } from '../../types/common.test';
 
 // Mock dependencies
 jest.mock('../../../src/api/ipfs/getIpfsFile');
@@ -13,13 +14,13 @@ jest.mock('../../../src/api/cache', () => ({
     has: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
-  }))
+  })),
 }));
 
 // Mock fetch globally
 /* global Response */
 global.fetch = jest.fn();
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+const mockFetch = fetch as jest.MockedFunction<MockFetch>;
 
 describe('Subgraph API', () => {
   let mockConfig: INetworkConfig;
@@ -30,6 +31,7 @@ describe('Subgraph API', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -329,11 +331,11 @@ describe('Subgraph API', () => {
     });
 
     it('should throw error if subgraph endpoint is not defined', async () => {
-      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as Record<string, unknown>;
+      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(fetchPublicProposalsFromSubgraph(configWithoutSubgraph as any)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config',
-      );
+      await expect(
+        fetchPublicProposalsFromSubgraph(configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
   });
 
@@ -417,11 +419,11 @@ describe('Subgraph API', () => {
     });
 
     it('should throw error if subgraph endpoint is not defined', async () => {
-      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as Record<string, unknown>;
+      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph as any)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config',
-      );
+      await expect(
+        fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
 
     it('should propagate errors from fetchPublicProposalsFromSubgraph', async () => {

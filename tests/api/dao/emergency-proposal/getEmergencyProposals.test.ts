@@ -3,6 +3,20 @@ import getEmergencyProposal from '../../../../src/api/dao/emergency-proposal/get
 import { getPublicClient } from '../../../../src/api/viem';
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { Address } from 'viem';
+// Removed unused imports: MockPublicClient, MockProposal
+
+// Test types (commented out to fix linter warnings)
+// interface MockPublicClient {
+//   readContract: jest.Mock;
+// }
+
+// interface MockEmergencyProposal {
+//   id: number;
+//   title: string;
+//   executed: boolean;
+//   approvals: number;
+//   proposalId?: number;
+// }
 
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/dao/emergency-proposal/getEmergencyProposal');
@@ -10,6 +24,7 @@ jest.mock('../../../../src/api/dao/emergency-proposal/getEmergencyProposal');
 describe('getEmergencyProposals', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x0000000000000000000000000000000000000001' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,
@@ -61,7 +76,7 @@ describe('getEmergencyProposals', () => {
     const result = await getEmergencyProposals(mockConfig);
 
     expect(mockReadContract).toHaveBeenCalledWith({
-      abi: expect.any(Array),
+      abi: expect.any(Array) as any[],
       address: mockConfig.contracts.EmergencyMultisigPlugin,
       functionName: 'proposalCount',
       args: [],
@@ -156,7 +171,7 @@ describe('getEmergencyProposals', () => {
 
     const result = await getEmergencyProposals(mockConfig);
 
-    expect(console.error).toHaveBeenCalledWith(expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(expect.any(Error) as Error);
     expect(result).toBeUndefined();
   });
 

@@ -11,6 +11,18 @@ import { getPublicClient } from '../../src/api/viem';
 import { ABIs } from '../../src/abi';
 import getDelegates, { getDelegateCount, getDelegate, DelegateProfile } from '../../src/api/dao/delegates/getDelegates';
 
+// Test types
+// Unused interfaces commented out to fix linter warnings
+// interface MockWalletClient {
+//   account: {
+//     address: string;
+//   };
+// }
+
+// interface MockPublicClient {
+//   readContract: jest.Mock;
+// }
+
 // Mock all dependencies
 jest.mock('@inquirer/prompts');
 jest.mock('../../src/api/dao/security-council/getSecurityCouncilMembers');
@@ -22,8 +34,8 @@ jest.mock('../../src/api/viem');
 jest.mock('../../src/abi');
 jest.mock('../../src/api/dao/delegates/getDelegates');
 
-const mockSelect = inquirer.select as jest.MockedFunction<typeof inquirer.select>;
-const mockInput = inquirer.input as jest.MockedFunction<typeof inquirer.input>;
+const mockSelect = inquirer.select as jest.Mock;
+const mockInput = inquirer.input as jest.Mock;
 const mockGetSecurityCouncilMembers = getSecurityCouncilMembers as jest.MockedFunction<
   typeof getSecurityCouncilMembers
 >;
@@ -51,6 +63,7 @@ describe('selectMainMenuPrompt', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -221,10 +234,12 @@ describe('selectMainMenuPrompt', () => {
   describe('Security Council - Not a Member', () => {
     beforeEach(() => {
       const mockMembers = [
-        { owner: '0x1111' as `0x${string}`, signer: '0x2222' as any },
-        { owner: '0x3333' as `0x${string}`, signer: '0x4444' as any },
+        { owner: '0x1111' as `0x${string}`, signer: '0x2222' as `0x${string}` },
+        { owner: '0x3333' as `0x${string}`, signer: '0x4444' as `0x${string}` },
       ];
-      mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers as any);
+      mockGetSecurityCouncilMembers.mockResolvedValue(
+        mockMembers as Array<{ owner: `0x${string}`; signer: `0x${string}` }>,
+      );
       mockIsSecurityCouncilMember.mockResolvedValue(false);
     });
 
@@ -267,7 +282,7 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('View Standard Proposals')
         .mockResolvedValueOnce(0); // Select first proposal
 
-      const mockStandardProposals: Array<any> = [
+      const mockStandardProposals: Array<{ title: string; description: string }> = [
         { title: 'Standard Proposal 1', description: 'Standard Description' },
       ];
       mockGetStandardProposals.mockResolvedValue(mockStandardProposals as any);
@@ -290,7 +305,7 @@ describe('selectMainMenuPrompt', () => {
           { value: 'Create New Proposal' },
           { value: 'Approve/Execute Proposals' },
           { value: 'View Standard Proposals' },
-          { value: 'View Emergency Proposals' }
+          { value: 'View Emergency Proposals' },
         ],
       });
       expect(mockGetStandardProposals).toHaveBeenCalledWith(mockConfig);
@@ -305,7 +320,7 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('View Emergency Proposals')
         .mockResolvedValueOnce(0); // Select first proposal
 
-      const mockEmergencyProposals: Array<any> = [
+      const mockEmergencyProposals: Array<{ title: string; description: string }> = [
         { title: 'Emergency Proposal 1', description: 'Test emergency proposal' },
       ];
 

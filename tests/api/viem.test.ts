@@ -26,6 +26,7 @@ describe('viem client utilities', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -314,6 +315,7 @@ describe('viem client utilities', () => {
       const holeskyConfig = {
         ...mockConfig,
         network: 'holesky',
+        chainId: 17000,
         urls: {
           rpc: 'https://rpc.holesky.ethpandaops.io',
           explorer: 'https://holesky.etherscan.io',

@@ -203,7 +203,7 @@ export async function createProposalPrompt(config: INetworkConfig, walletClient:
           const selectedFunction = writeFunctions.find(
             (f: unknown) => typeof f === 'object' && f !== null && 'name' in f && f.name === functionName,
           );
-          const args = [];
+          const args: unknown[] = [];
 
           if (selectedFunction && selectedFunction.inputs.length > 0) {
             console.info('\nEnter function parameters:');
@@ -229,7 +229,7 @@ export async function createProposalPrompt(config: INetworkConfig, walletClient:
             }
           }
 
-          const action = encodeAction(contractAddress, abi, functionName as string, args as any);
+          const action = encodeAction(contractAddress, abi, functionName as string, args);
           actions.push(action);
         } else if (actionType === 'raw') {
           const to = await input({

@@ -17,6 +17,7 @@ jest.mock('../../src/abi', () => ({
 describe('getContractsPrompt', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x1234567890123456789012345678901234567890' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,

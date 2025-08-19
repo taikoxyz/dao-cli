@@ -4,7 +4,8 @@ import {
 } from '../../../src/api/subgraph/emergencyProposals';
 import { INetworkConfig } from '../../../src/types/network.type';
 import * as getIpfsFileModule from '../../../src/api/ipfs/getIpfsFile';
-import { hexToString } from 'viem';
+
+/* global Response */
 
 // Mock dependencies
 jest.mock('../../../src/api/ipfs/getIpfsFile');
@@ -13,10 +14,9 @@ jest.mock('viem', () => ({
 }));
 
 // Mock fetch globally
-/* global Response */
 global.fetch = jest.fn();
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
-const mockGetIpfsFileSafe = getIpfsFileModule.getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileModule.getIpfsFileSafe>;
+const mockGetIpfsFileSafe = getIpfsFileModule.getIpfsFileSafe as jest.Mock;
 
 describe('Emergency Proposals Subgraph API', () => {
   let mockConfig: INetworkConfig;
@@ -30,6 +30,7 @@ describe('Emergency Proposals Subgraph API', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -100,18 +101,30 @@ describe('Emergency Proposals Subgraph API', () => {
       const result = await getEmergencyProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.approvers).toHaveLength(2);
-      expect(result!.title).toBe('Emergency Proposal');
-      expect(result!.description).toBe('Test emergency proposal');
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.approvers).toHaveLength(2);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.title).toBe('Emergency Proposal');
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.description).toBe('Test emergency proposal');
+      }
     });
 
     it('should handle missing subgraph endpoint', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(getEmergencyProposalFromSubgraph(1, configWithoutSubgraph as any)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config',
-      );
+      await expect(
+        getEmergencyProposalFromSubgraph(1, configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
 
     it('should handle network errors', async () => {
@@ -184,8 +197,14 @@ describe('Emergency Proposals Subgraph API', () => {
       const result = await getEmergencyProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.executed).toBe(true);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.executed).toBe(true);
+      }
     });
 
     it('should handle only emergency proposal data', async () => {
@@ -212,9 +231,18 @@ describe('Emergency Proposals Subgraph API', () => {
       const result = await getEmergencyProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.approvers).toHaveLength(3);
-      expect(result!.executed).toBe(true); // undefined !== null is true
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.approvers).toHaveLength(3);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.executed).toBe(true); // undefined !== null is true
+      }
     });
 
     it('should handle null metadata', async () => {
@@ -242,7 +270,10 @@ describe('Emergency Proposals Subgraph API', () => {
       const result = await getEmergencyProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.metadataURI).toBe('');
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.metadataURI).toBe('');
+      }
     });
 
     it('should handle undefined response fields', async () => {
@@ -265,9 +296,18 @@ describe('Emergency Proposals Subgraph API', () => {
       const result = await getEmergencyProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.approvals).toBe(0);
-      expect(result!.creationBlockNumber).toBe(0n);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.approvals).toBe(0);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.creationBlockNumber).toBe(0n);
+      }
     });
   });
 
@@ -352,41 +392,49 @@ describe('Emergency Proposals Subgraph API', () => {
     it('should handle pagination', async () => {
       const firstBatch = {
         data: {
-          proposalMixins: Array(1000).fill(null).map((_, i) => ({
-            proposalId: `${i}`,
-            metadata: null,
-            creationBlockNumber: `${1000 + i}`,
-            executionBlockNumber: null,
-            approvers: [],
-            creator: `0xcreator${i}`,
-          })),
-          emergencyProposals: Array(1000).fill(null).map((_, i) => ({
-            id: `${i}`,
-            encryptedPayloadURI: null,
-            creator: `0xcreator${i}`,
-            approvers: [],
-            creationBlockNumber: `${1000 + i}`,
-          })),
+          proposalMixins: Array(1000)
+            .fill(null)
+            .map((_, i) => ({
+              proposalId: `${i}`,
+              metadata: null,
+              creationBlockNumber: `${1000 + i}`,
+              executionBlockNumber: null,
+              approvers: [],
+              creator: `0xcreator${i}`,
+            })),
+          emergencyProposals: Array(1000)
+            .fill(null)
+            .map((_, i) => ({
+              id: `${i}`,
+              encryptedPayloadURI: null,
+              creator: `0xcreator${i}`,
+              approvers: [],
+              creationBlockNumber: `${1000 + i}`,
+            })),
         },
       };
 
       const secondBatch = {
         data: {
-          proposalMixins: Array(500).fill(null).map((_, i) => ({
-            proposalId: `${i + 1000}`,
-            metadata: null,
-            creationBlockNumber: `${2000 + i}`,
-            executionBlockNumber: null,
-            approvers: [],
-            creator: `0xcreator${i + 1000}`,
-          })),
-          emergencyProposals: Array(500).fill(null).map((_, i) => ({
-            id: `${i + 1000}`,
-            encryptedPayloadURI: null,
-            creator: `0xcreator${i + 1000}`,
-            approvers: [],
-            creationBlockNumber: `${2000 + i}`,
-          })),
+          proposalMixins: Array(500)
+            .fill(null)
+            .map((_, i) => ({
+              proposalId: `${i + 1000}`,
+              metadata: null,
+              creationBlockNumber: `${2000 + i}`,
+              executionBlockNumber: null,
+              approvers: [],
+              creator: `0xcreator${i + 1000}`,
+            })),
+          emergencyProposals: Array(500)
+            .fill(null)
+            .map((_, i) => ({
+              id: `${i + 1000}`,
+              encryptedPayloadURI: null,
+              creator: `0xcreator${i + 1000}`,
+              approvers: [],
+              creationBlockNumber: `${2000 + i}`,
+            })),
         },
       };
 

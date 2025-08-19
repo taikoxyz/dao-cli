@@ -10,6 +10,8 @@ import { keccak256, toHex } from 'viem';
 import sodium from 'libsodium-wrappers';
 import { decryptSymmetricKey, decryptProposal } from '../../../../src/api/encryption';
 import { INetworkConfig } from '../../../../src/types/network.type';
+import { EncryptedProposalMetadata } from '../../../../src/types/proposal.type';
+import { MockAccount } from '../../../types/common.test';
 
 // Mock dependencies
 jest.mock('../../../../src/api/web3/getEnvPrivateKey');
@@ -22,16 +24,15 @@ const mockGetEnvPrivateKey = getEnvPrivateKey as jest.MockedFunction<typeof getE
 const mockPrivateKeyToAccount = privateKeyToAccount as jest.MockedFunction<typeof privateKeyToAccount>;
 const mockKeccak256 = keccak256 as jest.MockedFunction<typeof keccak256>;
 const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
-// const _mockSodium = sodium as jest.Mocked<typeof sodium>;
 
 // Mock sodium.crypto_scalarmult_base specifically
-(sodium as any).crypto_scalarmult_base = jest.fn();
+(sodium as jest.Mocked<typeof sodium>).crypto_scalarmult_base = jest.fn();
 const mockDecryptSymmetricKey = decryptSymmetricKey as jest.MockedFunction<typeof decryptSymmetricKey>;
 const mockDecryptProposal = decryptProposal as jest.MockedFunction<typeof decryptProposal>;
 
 describe('getDecryptionKey module', () => {
   let mockConfig: INetworkConfig;
-  let mockAccount: Record<string, unknown>;
+  let mockAccount: MockAccount;
 
   beforeEach(() => {
     // Mock console methods
@@ -39,6 +40,7 @@ describe('getDecryptionKey module', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -58,8 +60,15 @@ describe('getDecryptionKey module', () => {
     };
 
     mockAccount = {
-      address: '0xabcdef1234567890abcdef1234567890abcdef12',
+      address: '0xabcdef1234567890abcdef1234567890abcdef12' as `0x${string}`,
+      sign: jest.fn(),
+      signAuthorization: jest.fn(),
       signMessage: jest.fn(),
+      signTransaction: jest.fn(),
+      signTypedData: jest.fn(),
+      publicKey: '0x123456789abcdef' as `0x${string}`,
+      source: 'privateKey',
+      type: 'local' as const,
     };
 
     // Set up the function mocks that don't change between tests
@@ -83,7 +92,7 @@ describe('getDecryptionKey module', () => {
     });
 
     it('should handle hex without 0x prefix', () => {
-      const hex = '48656c6c6f' as any;
+      const hex = '48656c6c6f' as `0x${string}`;
       const result = hexToUint8Array(hex);
 
       expect(Array.from(result)).toEqual([72, 101, 108, 108, 111]);
@@ -111,7 +120,7 @@ describe('getDecryptionKey module', () => {
       ];
 
       testCases.forEach(({ hex, expected }) => {
-        const result = hexToUint8Array(hex as any);
+        const result = hexToUint8Array(hex as `0x${string}`);
         expect(Array.from(result)).toEqual(expected);
       });
     });
@@ -159,8 +168,11 @@ describe('getDecryptionKey module', () => {
       });
       expect(result).toHaveProperty('privateKey');
       expect(result).toHaveProperty('publicKey');
-      expect(result.privateKey).toBeInstanceOf(Uint8Array);
-      expect(result.publicKey).toBeInstanceOf(Uint8Array);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.privateKey).toBeInstanceOf(Uint8Array);
+        expect(result.publicKey).toBeInstanceOf(Uint8Array);
+      }
     });
 
     it('should handle user rejection of signature', async () => {
@@ -206,11 +218,11 @@ describe('getDecryptionKey module', () => {
   });
 
   describe.skip('decrypt function', () => {
-    const mockEncryptedMetadata: Record<string, unknown> = {
+    const mockEncryptedMetadata: EncryptedProposalMetadata = {
       encrypted: {
         metadata: 'encryptedMetadataHex',
         actions: 'encryptedActionsHex',
-        symmetricKeys: ['0xkey1', '0xkey2', '0xkey3'],
+        symmetricKeys: ['0xkey1', '0xkey2', '0xkey3'] as `0x${string}`[],
       },
     };
 
@@ -231,7 +243,9 @@ describe('getDecryptionKey module', () => {
       };
 
       mockDecryptSymmetricKey.mockReturnValue(mockSymmetricKey);
-      mockDecryptProposal.mockReturnValue(mockDecryptedResult as any);
+      mockDecryptProposal.mockReturnValue(
+        mockDecryptedResult as { metadata: Record<string, unknown>; rawMetadata: string; rawActions: Uint8Array },
+      );
 
       // Mock decodeAbiParameters
       const mockDecodeAbiParameters = jest.fn().mockReturnValue([[{ to: '0x123', value: '1000', data: '0xabc' }]]);
@@ -240,10 +254,10 @@ describe('getDecryptionKey module', () => {
         decodeAbiParameters: mockDecodeAbiParameters,
       }));
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata);
 
       expect(mockDecryptSymmetricKey).toHaveBeenCalledWith(
-        expect.any(Array),
+        expect.any(Array) as unknown[],
         expect.objectContaining({
           privateKey: expect.any(Uint8Array),
           publicKey: expect.any(Uint8Array),
@@ -265,7 +279,7 @@ describe('getDecryptionKey module', () => {
         throw decryptionError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', decryptionError);
@@ -280,7 +294,9 @@ describe('getDecryptionKey module', () => {
       };
 
       mockDecryptSymmetricKey.mockReturnValue(mockSymmetricKey);
-      mockDecryptProposal.mockReturnValue(mockDecryptedResult as any);
+      mockDecryptProposal.mockReturnValue(
+        mockDecryptedResult as { metadata: Record<string, unknown>; rawMetadata: string; rawActions: Uint8Array },
+      );
 
       // Mock decodeAbiParameters to return empty/invalid result
       const mockDecodeAbiParameters = jest.fn().mockReturnValue([undefined]);
@@ -289,10 +305,10 @@ describe('getDecryptionKey module', () => {
         decodeAbiParameters: mockDecodeAbiParameters,
       }));
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata);
 
       expect(result).toBeUndefined();
-      expect(console.error).toHaveBeenCalledWith('Decryption failed:', expect.any(Error));
+      expect(console.error).toHaveBeenCalledWith('Decryption failed:', expect.any(Error) as Error);
     });
 
     it('should convert symmetric keys from hex correctly', async () => {
@@ -302,14 +318,14 @@ describe('getDecryptionKey module', () => {
         metadata: { title: 'Test' },
         rawMetadata: 'raw',
         rawActions: new Uint8Array([0x12, 0x34]),
-      } as any);
+      });
 
-      await decrypt(mockConfig, mockEncryptedMetadata as any);
+      await decrypt(mockConfig, mockEncryptedMetadata);
 
       // Verify that symmetric keys were converted from hex
       expect(mockDecryptSymmetricKey).toHaveBeenCalledWith(
         expect.arrayContaining([expect.any(Uint8Array), expect.any(Uint8Array), expect.any(Uint8Array)]),
-        expect.any(Object),
+        expect.any(Object) as unknown,
       );
     });
 
@@ -319,7 +335,7 @@ describe('getDecryptionKey module', () => {
         throw symmetricKeyError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', symmetricKeyError);
@@ -334,7 +350,7 @@ describe('getDecryptionKey module', () => {
         throw proposalDecryptionError;
       });
 
-      const result = await decrypt(mockConfig, mockEncryptedMetadata as any);
+      const result = await decrypt(mockConfig, mockEncryptedMetadata);
 
       expect(result).toBeUndefined();
       expect(console.error).toHaveBeenCalledWith('Decryption failed:', proposalDecryptionError);
@@ -343,13 +359,13 @@ describe('getDecryptionKey module', () => {
 
   describe.skip('integration scenarios', () => {
     it('should work with real-like encrypted metadata', async () => {
-      const realishMetadata: Record<string, unknown> = {
+      const realishMetadata: EncryptedProposalMetadata = {
         encrypted: {
           metadata: '0xencryptedmetadata1234567890abcdef',
           actions: '0xencryptedactions1234567890abcdef',
           symmetricKeys: [
-            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12',
-            '0x2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef23',
+            '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef12' as `0x${string}`,
+            '0x2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef23' as `0x${string}`,
           ],
         },
       };
@@ -366,9 +382,9 @@ describe('getDecryptionKey module', () => {
         metadata: { title: 'Real Proposal', description: 'Real description' },
         rawMetadata: 'realRawMetadata',
         rawActions: new Uint8Array([0xaa, 0xbb, 0xcc]),
-      } as any);
+      });
 
-      const result = await decrypt(mockConfig, realishMetadata as any);
+      const result = await decrypt(mockConfig, realishMetadata);
 
       expect(result).toEqual({
         title: 'Real Proposal',
@@ -395,7 +411,10 @@ describe('getDecryptionKey module', () => {
         message: DETERMINISTIC_EMERGENCY_PAYLOAD,
       });
       expect(mockKeccak256).toHaveBeenCalledWith('0xvalidsignature');
-      expect(result.publicKey).toEqual(expectedPublicKey);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.publicKey).toEqual(expectedPublicKey);
+      }
     });
   });
 });

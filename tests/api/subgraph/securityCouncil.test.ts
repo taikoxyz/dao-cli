@@ -4,7 +4,9 @@ import {
   getDecryptionKeyFromSubgraph,
 } from '../../../src/api/subgraph/securityCouncil';
 import { INetworkConfig } from '../../../src/types/network.type';
+import { MockFetch } from '../../types/common.test';
 
+/* global Response */
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -21,11 +23,12 @@ describe('Security Council Subgraph API', () => {
   let mockConfig: INetworkConfig;
   let consoleErrorSpy: jest.SpyInstance;
   let consoleInfoSpy: jest.SpyInstance;
-  const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
+  const mockFetch = global.fetch as jest.MockedFunction<MockFetch>;
 
   beforeEach(() => {
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -60,16 +63,10 @@ describe('Security Council Subgraph API', () => {
         data: {
           signerListMembers: [
             {
-              approvers: [
-                { id: '0xapprover1' },
-                { id: '0xapprover2' },
-              ],
+              approvers: [{ id: '0xapprover1' }, { id: '0xapprover2' }],
             },
             {
-              approvers: [
-                { id: '0xapprover2' },
-                { id: '0xapprover3' },
-              ],
+              approvers: [{ id: '0xapprover2' }, { id: '0xapprover3' }],
             },
           ],
         },
@@ -96,7 +93,7 @@ describe('Security Council Subgraph API', () => {
             owner: '0xapprover3',
             signer: '0xapprover3',
           },
-        ])
+        ]),
       );
 
       expect(consoleInfoSpy).toHaveBeenCalledWith('Found 3 security council members from subgraph');
@@ -161,7 +158,7 @@ describe('Security Council Subgraph API', () => {
       mockFetch.mockRejectedValueOnce(error);
 
       const result = await getSecurityCouncilMembersFromSubgraph(mockConfig);
-      
+
       expect(result).toEqual([]);
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching security council members from subgraph:', error);
     });
@@ -174,15 +171,15 @@ describe('Security Council Subgraph API', () => {
       } as Response);
 
       const result = await getSecurityCouncilMembersFromSubgraph(mockConfig);
-      
+
       expect(result).toEqual([]);
     });
 
     it('should handle missing subgraph endpoint', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      const result = await getSecurityCouncilMembersFromSubgraph(configWithoutSubgraph as any);
-      
+      const result = await getSecurityCouncilMembersFromSubgraph(configWithoutSubgraph as unknown as INetworkConfig);
+
       expect(result).toEqual([]);
     });
   });
@@ -242,7 +239,10 @@ describe('Security Council Subgraph API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await isAppointedAgentFromSubgraph('0xabcdef1234567890abcdef1234567890abcdef12' as `0x${string}`, mockConfig);
+      const result = await isAppointedAgentFromSubgraph(
+        '0xabcdef1234567890abcdef1234567890abcdef12' as `0x${string}`,
+        mockConfig,
+      );
 
       expect(result).toBe(true);
     });
@@ -278,18 +278,13 @@ describe('Security Council Subgraph API', () => {
   describe('getDecryptionKeyFromSubgraph', () => {
     it('should always return null since decryption keys are not available through subgraph', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
+
       const result = await getDecryptionKeyFromSubgraph();
 
       expect(result).toBeNull();
       expect(consoleWarnSpy).toHaveBeenCalledWith('Decryption keys are not available through the subgraph');
-      
+
       consoleWarnSpy.mockRestore();
     });
-
-
-
-
-
   });
 });

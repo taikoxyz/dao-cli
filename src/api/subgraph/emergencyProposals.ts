@@ -9,14 +9,40 @@ interface GraphQLResponse<T = unknown> {
   errors?: Array<{ message: string }>;
 }
 
+interface Approver {
+  id: string;
+}
+
+interface ProposalMixin {
+  id: string;
+  proposalId: string;
+  metadata: string;
+  creator: string;
+  isEmergency: boolean;
+  creationTxHash: string;
+  creationBlockNumber: string;
+  executionBlockNumber: string | null;
+  executionTxHash: string;
+  approvers: Approver[];
+}
+
+interface EmergencyProposal {
+  id: string;
+  creator: string;
+  encryptedPayloadURI: string;
+  approvers: Approver[];
+  contractEventId: string;
+  creationBlockNumber: string;
+}
+
 interface EmergencyProposalData {
-  proposalMixins?: Array<unknown>;
-  emergencyProposals?: Array<unknown>;
+  proposalMixins?: ProposalMixin[];
+  emergencyProposals?: EmergencyProposal[];
 }
 
 interface EmergencyProposalsData {
-  emergencyProposals?: Array<unknown>;
-  proposalMixins?: Array<unknown>;
+  emergencyProposals?: EmergencyProposal[];
+  proposalMixins?: ProposalMixin[];
 }
 
 export async function getEmergencyProposalFromSubgraph(proposalId: number, config: INetworkConfig) {
@@ -79,8 +105,8 @@ export async function getEmergencyProposalFromSubgraph(proposalId: number, confi
       return undefined;
     }
 
-    const mixin = result.data?.proposalMixins?.[0] as any;
-    const proposal = result.data?.emergencyProposals?.[0] as any;
+    const mixin = result.data?.proposalMixins?.[0];
+    const proposal = result.data?.emergencyProposals?.[0];
 
     if (!mixin && !proposal) {
       console.log(`Emergency proposal ${proposalId} not found in subgraph`);
@@ -93,7 +119,7 @@ export async function getEmergencyProposalFromSubgraph(proposalId: number, confi
 
     if (metadataHex) {
       try {
-        const ipfsUri = hexToString(metadataHex);
+        const ipfsUri = hexToString(metadataHex as `0x${string}`);
         const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
         metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
         if (!metadata) {
@@ -108,8 +134,10 @@ export async function getEmergencyProposalFromSubgraph(proposalId: number, confi
       proposalId,
       executed: mixin?.executionBlockNumber !== null,
       approvals: mixin?.approvers?.length || proposal?.approvers?.length || 0,
-      metadataURI: metadataHex ? hexToString(metadataHex) : '',
-      encryptedPayloadURI: proposal?.encryptedPayloadURI ? hexToString(proposal.encryptedPayloadURI) : '',
+      metadataURI: metadataHex ? hexToString(metadataHex as `0x${string}`) : '',
+      encryptedPayloadURI: proposal?.encryptedPayloadURI
+        ? hexToString(proposal.encryptedPayloadURI as `0x${string}`)
+        : '',
       creator: mixin?.creator || proposal?.creator,
       creationBlockNumber: BigInt(mixin?.creationBlockNumber || proposal?.creationBlockNumber || 0),
       executionBlockNumber: mixin?.executionBlockNumber ? BigInt(mixin.executionBlockNumber) : null,
@@ -168,8 +196,8 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
       throw new Error('Subgraph endpoint is not defined in network config');
     }
 
-    const allMixins: Array<unknown> = [];
-    const allEmergencyProposals: Array<unknown> = [];
+    const allMixins: ProposalMixin[] = [];
+    const allEmergencyProposals: EmergencyProposal[] = [];
     const batchSize = 1000;
     let skip = 0;
     let hasMore = true;
@@ -200,8 +228,8 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
         break;
       }
 
-      const mixinBatch = (result.data?.proposalMixins || []) as any[];
-      const emergencyBatch = (result.data?.emergencyProposals || []) as any[];
+      const mixinBatch = result.data?.proposalMixins || [];
+      const emergencyBatch = result.data?.emergencyProposals || [];
 
       if (mixinBatch.length === 0 && emergencyBatch.length === 0) {
         hasMore = false;
@@ -220,20 +248,20 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
 
     // Create a map for emergency proposals by ID
     const emergencyMap = new Map();
-    allEmergencyProposals.forEach((ep: any) => {
+    allEmergencyProposals.forEach((ep: EmergencyProposal) => {
       emergencyMap.set(ep.id, ep);
     });
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allMixins.map(async (mixin: any) => {
+      allMixins.map(async (mixin: ProposalMixin) => {
         const emergencyData = emergencyMap.get(mixin.proposalId);
         let metadata: IProposalMetadata | undefined;
 
         const metadataHex = mixin.metadata || emergencyData?.encryptedPayloadURI;
         if (metadataHex) {
           try {
-            const ipfsUri = hexToString(metadataHex);
+            const ipfsUri = hexToString(metadataHex as `0x${string}`);
             const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
             metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
             if (!metadata) {
@@ -248,7 +276,7 @@ export async function getEmergencyProposalsFromSubgraph(config: INetworkConfig) 
           proposalId: parseInt(mixin.proposalId),
           executed: mixin.executionBlockNumber !== null,
           approvals: mixin.approvers?.length || emergencyData?.approvers?.length || 0,
-          metadataURI: metadataHex ? hexToString(metadataHex) : '',
+          metadataURI: metadataHex ? hexToString(metadataHex as `0x${string}`) : '',
           encryptedPayloadURI: emergencyData?.encryptedPayloadURI ? hexToString(emergencyData.encryptedPayloadURI) : '',
           creator: mixin.creator,
           creationBlockNumber: BigInt(mixin.creationBlockNumber),

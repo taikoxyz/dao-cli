@@ -108,8 +108,8 @@ export async function getStandardProposalFromSubgraph(proposalId: number, config
       return undefined;
     }
 
-    const mixin = result.data?.proposalMixins?.[0] as any;
-    const proposal = result.data?.standardProposals?.[0] as any;
+    const mixin = result.data?.proposalMixins?.[0];
+    const proposal = result.data?.standardProposals?.[0];
 
     if (!mixin && !proposal) {
       console.log(`Standard proposal ${proposalId} not found in subgraph`);
@@ -122,7 +122,7 @@ export async function getStandardProposalFromSubgraph(proposalId: number, config
 
     if (metadataHex) {
       try {
-        const ipfsUri = hexToString(metadataHex);
+        const ipfsUri = hexToString(metadataHex as `0x${string}`);
         const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
         metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
         if (!metadata) {
@@ -137,7 +137,7 @@ export async function getStandardProposalFromSubgraph(proposalId: number, config
       proposalId,
       executed: mixin?.executionBlockNumber !== null,
       approvals: mixin?.approvers?.length || 0,
-      metadataURI: metadataHex ? hexToString(metadataHex) : '',
+      metadataURI: metadataHex ? hexToString(metadataHex as `0x${string}`) : '',
       creator: mixin?.creator || proposal?.creator,
       creationBlockNumber: BigInt(mixin?.creationBlockNumber || proposal?.creationBlockNumber || 0),
       executionBlockNumber: mixin?.executionBlockNumber ? BigInt(mixin.executionBlockNumber) : null,
@@ -231,12 +231,12 @@ export async function getStandardProposalsFromSubgraph(config: INetworkConfig) {
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allProposals.map(async (mixin: any) => {
+      allProposals.map(async (mixin) => {
         let metadata: IProposalMetadata | undefined;
 
         if (mixin.metadata) {
           try {
-            const ipfsUri = hexToString(mixin.metadata);
+            const ipfsUri = hexToString(mixin.metadata as `0x${string}`);
             const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
             metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
             if (!metadata) {
@@ -251,7 +251,7 @@ export async function getStandardProposalsFromSubgraph(config: INetworkConfig) {
           proposalId: parseInt(mixin.proposalId),
           executed: mixin.executionBlockNumber !== null,
           approvals: mixin.approvers?.length || 0,
-          metadataURI: mixin.metadata ? hexToString(mixin.metadata) : '',
+          metadataURI: mixin.metadata ? hexToString(mixin.metadata as `0x${string}`) : '',
           creator: mixin.creator,
           creationBlockNumber: BigInt(mixin.creationBlockNumber),
           executionBlockNumber: mixin.executionBlockNumber ? BigInt(mixin.executionBlockNumber) : null,

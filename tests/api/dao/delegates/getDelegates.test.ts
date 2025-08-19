@@ -1,7 +1,7 @@
 import getDelegates, { getDelegateCount, getDelegate } from '../../../../src/api/dao/delegates/getDelegates';
 import { getPublicClient } from '../../../../src/api/viem';
 import { INetworkConfig } from '../../../../src/types/network.type';
-import getIpfsFile, { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFile';
+import { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFile';
 import axios from 'axios';
 
 jest.mock('../../../../src/api/viem');
@@ -12,20 +12,21 @@ jest.mock('../../../../src/api/cache', () => ({
     has: jest.fn(),
     get: jest.fn(),
     set: jest.fn(),
-  }))
+  })),
 }));
 
 const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileSafe>;
 const mockAxios = axios as jest.Mocked<typeof axios>;
 import { getNetworkCache } from '../../../../src/api/cache';
+import { MockPublicClient, MockGetNetworkCache } from '../../../types/common.test';
+
 const mockGetNetworkCache = getNetworkCache as jest.MockedFunction<typeof getNetworkCache>;
 
 describe('Delegates API', () => {
   let mockConfig: INetworkConfig;
-  let mockPublicClient: Record<string, unknown>;
-  let mockCache: any;
+  let mockPublicClient: MockPublicClient;
+  let mockCache: MockGetNetworkCache;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,10 +36,11 @@ describe('Delegates API', () => {
       get: jest.fn(),
       set: jest.fn(),
     };
-    mockGetNetworkCache.mockReturnValue(mockCache);
+    mockGetNetworkCache.mockReturnValue(mockCache as any);
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -91,7 +93,7 @@ describe('Delegates API', () => {
 
   describe('getDelegates', () => {
     it('should return empty array when no delegates exist', async () => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has!.mockResolvedValue(false);
       (mockPublicClient.readContract as jest.Mock).mockResolvedValue([]); // getCandidateAddresses returns empty array
 
       const result = await getDelegates(mockConfig);
@@ -105,9 +107,9 @@ describe('Delegates API', () => {
         { address: '0xcached2', contentUrl: 'cached2' }, // No identifier
       ];
 
-      mockCache.has.mockResolvedValue(true);
-      mockCache.get.mockResolvedValue(cachedDelegates);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(true);
+      mockCache.get!.mockResolvedValue(cachedDelegates);
+      mockCache.set!.mockResolvedValue(undefined);
 
       // Mock fresh data fetch
       (mockPublicClient.readContract as jest.Mock)
@@ -125,8 +127,8 @@ describe('Delegates API', () => {
     });
 
     it('should fetch all delegates', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1', '0xdelegate2']) // getCandidateAddresses
@@ -147,8 +149,8 @@ describe('Delegates API', () => {
     });
 
     it('should fetch delegates with IPFS metadata', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -174,8 +176,8 @@ describe('Delegates API', () => {
     });
 
     it('should use name field when identifier is not available', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -192,8 +194,8 @@ describe('Delegates API', () => {
     });
 
     it('should use title field when identifier and name are not available', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -210,8 +212,8 @@ describe('Delegates API', () => {
     });
 
     it('should use displayName field as last resort', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -228,8 +230,8 @@ describe('Delegates API', () => {
     });
 
     it('should warn when no identifier fields are found', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -250,8 +252,8 @@ describe('Delegates API', () => {
     });
 
     it('should handle null contentUrl bytes', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -267,8 +269,8 @@ describe('Delegates API', () => {
     });
 
     it('should handle IPFS metadata fetch errors', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
@@ -282,7 +284,7 @@ describe('Delegates API', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error fetching IPFS metadata for delegate 0xdelegate1:',
-        expect.any(Error),
+        expect.any(Error) as Error,
       );
       expect(result[0].metadata).toBeUndefined();
 
@@ -290,8 +292,8 @@ describe('Delegates API', () => {
     });
 
     it('should handle individual delegate fetch errors', async () => {
-      mockCache.has.mockResolvedValue(false);
-      mockCache.set.mockResolvedValue(undefined);
+      mockCache.has!.mockResolvedValue(false);
+      mockCache.set!.mockResolvedValue(undefined);
 
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1', '0xdelegate2']) // getCandidateAddresses
@@ -304,7 +306,7 @@ describe('Delegates API', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error fetching profile for delegate 0xdelegate1:',
-        expect.any(Error),
+        expect.any(Error) as Error,
       );
       expect(result).toHaveLength(1);
       expect(result[0].address).toBe('0xdelegate2');
@@ -318,8 +320,8 @@ describe('Delegates API', () => {
         { address: '0xcached2', contentUrl: 'cached2', identifier: 'Cached 2' },
       ];
 
-      mockCache.has.mockResolvedValue(true);
-      mockCache.get.mockResolvedValue(cachedDelegates);
+      mockCache.has!.mockResolvedValue(true);
+      mockCache.get!.mockResolvedValue(cachedDelegates);
 
       const result = await getDelegates(mockConfig);
 
@@ -328,7 +330,7 @@ describe('Delegates API', () => {
     });
 
     it('should handle contract read errors', async () => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has!.mockResolvedValue(false);
       (mockPublicClient.readContract as jest.Mock)
         .mockResolvedValueOnce(['0xdelegate1']) // getCandidateAddresses
         .mockRejectedValue(new Error('Contract read failed')); // fail on getting contentUrl
@@ -344,7 +346,9 @@ describe('Delegates API', () => {
 
     it('should fetch delegate basic info', async () => {
       // Mock contentUrl as hex encoded string
-      (mockPublicClient.readContract as jest.Mock).mockResolvedValue('0x68747470733a2f2f6578616d706c652e636f6d2f64656c6567617465'); // hex for "https://example.com/delegate"
+      (mockPublicClient.readContract as jest.Mock).mockResolvedValue(
+        '0x68747470733a2f2f6578616d706c652e636f6d2f64656c6567617465',
+      ); // hex for "https://example.com/delegate"
 
       const result = await getDelegate(delegateAddress, mockConfig, false);
 

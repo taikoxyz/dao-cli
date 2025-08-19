@@ -48,14 +48,20 @@ describe('Encryption Utilities', () => {
       const result = concatenate([array1, array2]);
 
       expect(result).toEqual(new Uint8Array([]));
-      expect(result.length).toBe(0);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.length).toBe(0);
+      }
     });
 
     it('should handle no arrays', () => {
       const result = concatenate([]);
 
       expect(result).toEqual(new Uint8Array([]));
-      expect(result.length).toBe(0);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.length).toBe(0);
+      }
     });
 
     it('should preserve byte values correctly', () => {
@@ -74,7 +80,10 @@ describe('Encryption Utilities', () => {
 
       const result = concatenate([array1, array2, array3]);
 
-      expect(result.length).toBe(3500);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.length).toBe(3500);
+      }
       expect(result.slice(0, 1000).every((x) => x === 1)).toBe(true);
       expect(result.slice(1000, 3000).every((x) => x === 2)).toBe(true);
       expect(result.slice(3000, 3500).every((x) => x === 3)).toBe(true);

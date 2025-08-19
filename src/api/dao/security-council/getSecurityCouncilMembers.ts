@@ -27,12 +27,12 @@ export default async function getSecurityCouncilMembers(
   const blockNumber = (await client.getBlockNumber()) - 10n;
   for (const signer of encryptionAgents) {
     try {
-      const owner = await client.readContract({
+      const owner = (await client.readContract({
         address,
         abi: ABIs.SignerList,
         functionName: 'getListedEncryptionOwnerAtBlock',
         args: [signer as Address, blockNumber],
-      }) as unknown as Address;
+      })) as unknown as Address;
 
       out.push({ owner, signer });
       cache.set('signerList', out);

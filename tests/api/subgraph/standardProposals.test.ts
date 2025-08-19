@@ -4,7 +4,8 @@ import {
 } from '../../../src/api/subgraph/standardProposals';
 import { INetworkConfig } from '../../../src/types/network.type';
 import * as getIpfsFileModule from '../../../src/api/ipfs/getIpfsFile';
-import { hexToString } from 'viem';
+
+/* global Response */
 
 // Mock dependencies
 jest.mock('../../../src/api/ipfs/getIpfsFile');
@@ -21,8 +22,8 @@ describe('Standard Proposals Subgraph API', () => {
   let consoleInfoSpy: jest.SpyInstance;
   let consoleLogSpy: jest.SpyInstance;
   let consoleWarnSpy: jest.SpyInstance;
-  const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
-  const mockGetIpfsFileSafe = getIpfsFileModule.getIpfsFileSafe as jest.MockedFunction<typeof getIpfsFileModule.getIpfsFileSafe>;
+  const mockFetch = global.fetch as jest.Mock;
+  const mockGetIpfsFileSafe = getIpfsFileModule.getIpfsFileSafe as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -32,6 +33,7 @@ describe('Standard Proposals Subgraph API', () => {
     mockGetIpfsFileSafe.mockResolvedValue(null);
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -71,29 +73,33 @@ describe('Standard Proposals Subgraph API', () => {
     it('should fetch a specific standard proposal', async () => {
       const mockResponse = {
         data: {
-          proposalMixins: [{
-            id: '0x123',
-            proposalId: '1',
-            metadata: '0x697066733a2f2f516d54657374313233',
-            creator: '0xcreator1',
-            isEmergency: false,
-            isStandard: true,
-            isOptimistic: false,
-            creationTxHash: '0xtxhash',
-            creationBlockNumber: '1000',
-            executionBlockNumber: null,
-            executionTxHash: '',
-            approvers: [{ id: '0xapprover1' }, { id: '0xapprover2' }],
-          }],
-          standardProposals: [{
-            id: '1',
-            creator: '0xcreator1',
-            metadata: '0x697066733a2f2f516d54657374313233',
-            startDate: '1234567890',
-            endDate: '1234567900',
-            contractEventId: 'event1',
-            creationBlockNumber: '1000',
-          }],
+          proposalMixins: [
+            {
+              id: '0x123',
+              proposalId: '1',
+              metadata: '0x697066733a2f2f516d54657374313233',
+              creator: '0xcreator1',
+              isEmergency: false,
+              isStandard: true,
+              isOptimistic: false,
+              creationTxHash: '0xtxhash',
+              creationBlockNumber: '1000',
+              executionBlockNumber: null,
+              executionTxHash: '',
+              approvers: [{ id: '0xapprover1' }, { id: '0xapprover2' }],
+            },
+          ],
+          standardProposals: [
+            {
+              id: '1',
+              creator: '0xcreator1',
+              metadata: '0x697066733a2f2f516d54657374313233',
+              startDate: '1234567890',
+              endDate: '1234567900',
+              contractEventId: 'event1',
+              creationBlockNumber: '1000',
+            },
+          ],
         },
       };
 
@@ -146,15 +152,17 @@ describe('Standard Proposals Subgraph API', () => {
     it('should handle only proposal mixin data', async () => {
       const mockResponse = {
         data: {
-          proposalMixins: [{
-            id: '0x123',
-            proposalId: '2',
-            metadata: '0x697066733a2f2f516d54657374343536',
-            creator: '0xcreator2',
-            creationBlockNumber: '2000',
-            executionBlockNumber: '2500',
-            approvers: [],
-          }],
+          proposalMixins: [
+            {
+              id: '0x123',
+              proposalId: '2',
+              metadata: '0x697066733a2f2f516d54657374343536',
+              creator: '0xcreator2',
+              creationBlockNumber: '2000',
+              executionBlockNumber: '2500',
+              approvers: [],
+            },
+          ],
           standardProposals: [],
         },
       };
@@ -212,13 +220,17 @@ describe('Standard Proposals Subgraph API', () => {
         statusText: 'Internal Server Error',
       } as Response);
 
-      await expect(getStandardProposalFromSubgraph(1, mockConfig)).rejects.toThrow('Subgraph request failed: 500 Internal Server Error');
+      await expect(getStandardProposalFromSubgraph(1, mockConfig)).rejects.toThrow(
+        'Subgraph request failed: 500 Internal Server Error',
+      );
     });
 
     it('should handle missing subgraph endpoint', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(getStandardProposalFromSubgraph(1, configWithoutSubgraph as any)).rejects.toThrow('Subgraph endpoint is not defined in network config');
+      await expect(
+        getStandardProposalFromSubgraph(1, configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
   });
 
@@ -320,29 +332,33 @@ describe('Standard Proposals Subgraph API', () => {
     it('should handle pagination', async () => {
       const firstBatch = {
         data: {
-          proposalMixins: Array(1000).fill(null).map((_, i) => ({
-            id: `0x${i}`,
-            proposalId: `${i}`,
-            metadata: null,
-            creator: `0xcreator${i}`,
-            creationBlockNumber: `${i * 100}`,
-            executionBlockNumber: null,
-            approvers: [],
-          })),
+          proposalMixins: Array(1000)
+            .fill(null)
+            .map((_, i) => ({
+              id: `0x${i}`,
+              proposalId: `${i}`,
+              metadata: null,
+              creator: `0xcreator${i}`,
+              creationBlockNumber: `${i * 100}`,
+              executionBlockNumber: null,
+              approvers: [],
+            })),
         },
       };
 
       const secondBatch = {
         data: {
-          proposalMixins: Array(500).fill(null).map((_, i) => ({
-            id: `0x${i + 1000}`,
-            proposalId: `${i + 1000}`,
-            metadata: null,
-            creator: `0xcreator${i + 1000}`,
-            creationBlockNumber: `${(i + 1000) * 100}`,
-            executionBlockNumber: null,
-            approvers: [],
-          })),
+          proposalMixins: Array(500)
+            .fill(null)
+            .map((_, i) => ({
+              id: `0x${i + 1000}`,
+              proposalId: `${i + 1000}`,
+              metadata: null,
+              creator: `0xcreator${i + 1000}`,
+              creationBlockNumber: `${(i + 1000) * 100}`,
+              executionBlockNumber: null,
+              approvers: [],
+            })),
         },
       };
 
@@ -393,15 +409,17 @@ describe('Standard Proposals Subgraph API', () => {
     it('should handle metadata fetch errors gracefully', async () => {
       const mockResponse = {
         data: {
-          proposalMixins: [{
-            id: '0x1',
-            proposalId: '1',
-            metadata: '0x697066733a2f2f516d5465737431',
-            creator: '0xcreator1',
-            creationBlockNumber: '1000',
-            executionBlockNumber: null,
-            approvers: [],
-          }],
+          proposalMixins: [
+            {
+              id: '0x1',
+              proposalId: '1',
+              metadata: '0x697066733a2f2f516d5465737431',
+              creator: '0xcreator1',
+              creationBlockNumber: '1000',
+              executionBlockNumber: null,
+              approvers: [],
+            },
+          ],
         },
       };
 
@@ -415,15 +433,17 @@ describe('Standard Proposals Subgraph API', () => {
 
       const result = await getStandardProposalsFromSubgraph(mockConfig);
 
-      expect(result).toEqual([{
-        proposalId: 1,
-        executed: false,
-        approvals: 0,
-        metadataURI: 'ipfs://Qm0x697066733a2f2f516d5465737431',
-        creator: '0xcreator1',
-        creationBlockNumber: 1000n,
-        executionBlockNumber: null,
-      }]);
+      expect(result).toEqual([
+        {
+          proposalId: 1,
+          executed: false,
+          approvals: 0,
+          metadataURI: 'ipfs://Qm0x697066733a2f2f516d5465737431',
+          creator: '0xcreator1',
+          creationBlockNumber: 1000n,
+          executionBlockNumber: null,
+        },
+      ]);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching metadata for proposal 1:', ipfsError);
     });

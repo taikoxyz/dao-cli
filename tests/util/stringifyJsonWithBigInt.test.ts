@@ -285,7 +285,7 @@ describe('stringifyJsonWithBigInt', () => {
       expect(parsed.computed).toBe('456');
       expect(parsed['string-key']).toBe('789');
       // Symbol properties are not included in JSON.stringify
-      expect((parsed as any)[Symbol.for('bigint')]).toBeUndefined();
+      expect((parsed as Record<symbol, unknown>)[Symbol.for('bigint')]).toBeUndefined();
     });
   });
 

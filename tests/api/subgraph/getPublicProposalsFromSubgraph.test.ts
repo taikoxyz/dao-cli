@@ -1,6 +1,6 @@
 import { getPublicProposalsFromSubgraph } from '../../../src/api/subgraph/getPublicProposalsFromSubgraph';
 import { fetchAllPublicProposalsFromSubgraph } from '../../../src/api/subgraph/index';
-import getIpfsFile, { getIpfsFileSafe } from '../../../src/api/ipfs/getIpfsFile';
+import { getIpfsFileSafe } from '../../../src/api/ipfs/getIpfsFile';
 import { INetworkConfig } from '../../../src/types/network.type';
 import { IProposalMetadata } from '../../../src/types/proposal.type';
 import { Address } from 'viem';
@@ -11,6 +11,7 @@ jest.mock('../../../src/api/ipfs/getIpfsFile');
 describe('getPublicProposalsFromSubgraph', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x0000000000000000000000000000000000000001' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,

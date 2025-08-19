@@ -23,6 +23,7 @@ describe('connectEnvWallet', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -132,7 +133,7 @@ describe('connectEnvWallet', () => {
     });
 
     it('should use fallback 0x for unsupported network', async () => {
-      mockConfig.network = 'unsupported-network' as any;
+      mockConfig.network = 'unsupported-network' as 'holesky' | 'mainnet';
       delete process.env.HOLESKY_PRIVATE_KEY;
       delete process.env.MAINNET_PRIVATE_KEY;
 
@@ -263,7 +264,10 @@ describe('connectEnvWallet', () => {
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
-      expect(result.account).toBe(mockAccount);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.account).toBe(mockAccount);
+      }
     });
 
     it('should handle complete workflow for mainnet network', async () => {
@@ -280,7 +284,10 @@ describe('connectEnvWallet', () => {
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
-      expect(result.account).toBe(mockAccount);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.account).toBe(mockAccount);
+      }
     });
   });
 });

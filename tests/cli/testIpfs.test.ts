@@ -12,7 +12,7 @@ describe('testIpfsPinning', () => {
     jest.clearAllMocks();
     consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    
+
     // Reset the mock implementation for testIpfsPinning
     mockTestIpfsPinning.mockImplementation(async () => {
       try {
@@ -50,7 +50,7 @@ describe('testIpfsPinning', () => {
         test: true,
         timestamp: expect.any(String),
         message: 'IPFS pinning test',
-      })
+      }),
     );
     expect(consoleInfoSpy).toHaveBeenCalledWith(`IPFS pinning test successful! Hash: ${mockHash}`);
   });
@@ -94,16 +94,16 @@ describe('testIpfsPinning', () => {
     await testIpfsPinning();
 
     const afterTime = new Date();
-    
+
     expect(mockPinJsonToIpfs).toHaveBeenCalledWith(
       expect.objectContaining({
         test: true,
         message: 'IPFS pinning test',
         timestamp: expect.any(String),
-      })
+      }),
     );
 
-    const calledData = mockPinJsonToIpfs.mock.calls[0][0] as any;
+    const calledData = mockPinJsonToIpfs.mock.calls[0][0] as { test: boolean; message: string; timestamp: string };
     const timestamp = new Date(calledData.timestamp);
     expect(timestamp.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime() - 1000); // Allow 1 second tolerance
     expect(timestamp.getTime()).toBeLessThanOrEqual(afterTime.getTime() + 1000);

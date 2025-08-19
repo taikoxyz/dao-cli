@@ -101,8 +101,8 @@ export async function getPublicProposalFromSubgraph(proposalId: number, config: 
       return undefined;
     }
 
-    const proposal = result.data?.optimisticTokenVotingProposals?.[0] as any;
-    const mixin = result.data?.proposalMixins?.[0] as any;
+    const proposal = result.data?.optimisticTokenVotingProposals?.[0];
+    const mixin = result.data?.proposalMixins?.[0];
 
     if (!proposal && !mixin) {
       console.log(`Public proposal ${proposalId} not found in subgraph`);
@@ -115,7 +115,7 @@ export async function getPublicProposalFromSubgraph(proposalId: number, config: 
 
     if (metadataHex) {
       try {
-        const ipfsUri = hexToString(metadataHex);
+        const ipfsUri = hexToString(metadataHex as `0x${string}`);
         const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
         metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
         if (!metadata) {
@@ -129,7 +129,7 @@ export async function getPublicProposalFromSubgraph(proposalId: number, config: 
     return {
       proposalId,
       executed: mixin?.executionBlockNumber !== null,
-      metadataURI: metadataHex ? hexToString(metadataHex) : '',
+      metadataURI: metadataHex ? hexToString(metadataHex as `0x${string}`) : '',
       creator: proposal?.creator || mixin?.creator,
       creatorAddress: proposal?.creatorAddress,
       startDate: proposal?.startDate ? new Date(parseInt(proposal.startDate) * 1000) : undefined,
@@ -243,20 +243,20 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
 
     // Create a map for mixins by proposal ID
     const mixinMap = new Map();
-    allMixins.forEach((mixin: any) => {
+    allMixins.forEach((mixin) => {
       mixinMap.set(mixin.proposalId, mixin);
     });
 
     // Process proposals and fetch metadata
     const processedProposals = await Promise.all(
-      allOptimisticProposals.map(async (proposal: any) => {
+      allOptimisticProposals.map(async (proposal) => {
         const mixin = mixinMap.get(proposal.id);
         let metadata: IProposalMetadata | undefined;
 
         const metadataHex = proposal.metadata || mixin?.metadata;
         if (metadataHex) {
           try {
-            const ipfsUri = hexToString(metadataHex);
+            const ipfsUri = hexToString(metadataHex as `0x${string}`);
             const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
             metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
             if (!metadata) {
@@ -270,7 +270,7 @@ export async function getPublicProposalsFromSubgraph(config: INetworkConfig) {
         return {
           proposalId: parseInt(proposal.id),
           executed: mixin?.executionBlockNumber !== null,
-          metadataURI: metadataHex ? hexToString(metadataHex) : '',
+          metadataURI: metadataHex ? hexToString(metadataHex as `0x${string}`) : '',
           creator: proposal.creator,
           creatorAddress: proposal.creatorAddress,
           startDate: proposal.startDate ? new Date(parseInt(proposal.startDate) * 1000) : undefined,

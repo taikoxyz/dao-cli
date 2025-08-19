@@ -4,12 +4,18 @@ import getIpfsFile, { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFi
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { Address } from 'viem';
 
+// Test types (commented out to fix linter warnings)
+// interface MockPublicClient {
+//   readContract: jest.Mock;
+// }
+
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/ipfs/getIpfsFile');
 
 describe('getPublicProposal', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x0000000000000000000000000000000000000001' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,
@@ -85,13 +91,13 @@ describe('getPublicProposal', () => {
 
     expect(mockReadContract).toHaveBeenCalledTimes(2);
     expect(mockReadContract).toHaveBeenNthCalledWith(1, {
-      abi: expect.any(Array),
+      abi: expect.any(Array) as unknown[],
       address: mockConfig.contracts.OptimisticTokenVotingPlugin,
       functionName: 'proposalIds',
       args: [0],
     });
     expect(mockReadContract).toHaveBeenNthCalledWith(2, {
-      abi: expect.any(Array),
+      abi: expect.any(Array) as unknown[],
       address: mockConfig.contracts.OptimisticTokenVotingPlugin,
       functionName: 'getProposal',
       args: ['0x00000001'],
@@ -149,8 +155,8 @@ describe('getPublicProposal', () => {
 
     const result = await getPublicProposal(2, mockConfig);
 
-    expect(console.error).toHaveBeenCalledWith('Error fetching public proposal 2:', expect.any(Error));
-    expect(console.error).toHaveBeenCalledWith(expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith('Error fetching public proposal 2:', expect.any(Error) as Error);
+    expect(console.error).toHaveBeenCalledWith(expect.any(Error) as Error);
     expect(result).toBeUndefined();
   });
 
@@ -191,7 +197,7 @@ describe('getPublicProposal', () => {
     const result = await getPublicProposal(10, mockConfig);
 
     expect(mockReadContract).toHaveBeenNthCalledWith(1, {
-      abi: expect.any(Array),
+      abi: expect.any(Array) as unknown[],
       address: mockConfig.contracts.OptimisticTokenVotingPlugin,
       functionName: 'proposalIds',
       args: [10],

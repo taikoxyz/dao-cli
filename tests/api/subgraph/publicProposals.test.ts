@@ -23,6 +23,7 @@ describe('Public Proposals Subgraph API', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -96,18 +97,21 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.title).toBe('Test Proposal');
-      expect(result!.description).toBe('Test Description');
-      expect(result!.creator).toBe('0xcreator1');
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+        expect(result.title).toBe('Test Proposal');
+        expect(result.description).toBe('Test Description');
+        expect(result.creator).toBe('0xcreator1');
+      }
     });
 
     it('should handle missing subgraph endpoint', async () => {
       const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(getPublicProposalFromSubgraph(1, configWithoutSubgraph as any)).rejects.toThrow(
-        'Subgraph endpoint is not defined in network config',
-      );
+      await expect(
+        getPublicProposalFromSubgraph(1, configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
 
     it('should handle network errors', async () => {
@@ -177,8 +181,14 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.metadataURI).toBe('');
-      expect(result!.title).toBeUndefined();
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.metadataURI).toBe('');
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.title).toBeUndefined();
+      }
     });
 
     it('should handle IPFS fetch errors gracefully', async () => {
@@ -216,7 +226,10 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.title).toBeUndefined();
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.title).toBeUndefined();
+      }
     });
 
     it('should handle non-IPFS metadata URIs', async () => {
@@ -254,7 +267,10 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.metadataURI).toBe('https://example.com');
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.metadataURI).toBe('https://example.com');
+      }
       // getIpfsFileSafe is called with non-IPFS URLs but will fail (caught in try/catch)
       expect(mockGetIpfsFileSafe).toHaveBeenCalledWith('https://example.com');
     });
@@ -289,9 +305,18 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.executed).toBe(true);
-      expect(result!.vetoes).toHaveLength(1);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.executed).toBe(true);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.vetoes).toHaveLength(1);
+      }
     });
 
     it('should handle only optimistic proposal data', async () => {
@@ -324,9 +349,18 @@ describe('Public Proposals Subgraph API', () => {
       const result = await getPublicProposalFromSubgraph(1, mockConfig);
 
       expect(result).toBeDefined();
-      expect(result!.proposalId).toBe(1);
-      expect(result!.startDate).toEqual(new Date(1234567890 * 1000));
-      expect(result!.endDate).toEqual(new Date(1234567900 * 1000));
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.proposalId).toBe(1);
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.startDate).toEqual(new Date(1234567890 * 1000));
+      }
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.endDate).toEqual(new Date(1234567900 * 1000));
+      }
     });
 
     it('should handle null data response', async () => {

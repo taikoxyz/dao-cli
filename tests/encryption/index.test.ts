@@ -22,11 +22,14 @@ describe('Encryption Integration', () => {
 
       expect(result).toHaveProperty('encrypted');
       expect(result).toHaveProperty('symmetricKey');
-      expect(result.encrypted).toHaveProperty('metadata');
-      expect(result.encrypted).toHaveProperty('actions');
-      expect(typeof result.encrypted.metadata).toBe('string');
-      expect(typeof result.encrypted.actions).toBe('string');
-      expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.encrypted).toHaveProperty('metadata');
+        expect(result.encrypted).toHaveProperty('actions');
+        expect(typeof result.encrypted.metadata).toBe('string');
+        expect(typeof result.encrypted.actions).toBe('string');
+        expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      }
     });
 
     it('should produce different encrypted data for same input', () => {
@@ -49,7 +52,10 @@ describe('Encryption Integration', () => {
 
       expect(result.encrypted.metadata).toBeDefined();
       expect(result.encrypted.actions).toBeDefined();
-      expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      }
     });
 
     it('should handle large proposal data', () => {
@@ -63,7 +69,10 @@ describe('Encryption Integration', () => {
 
       expect(result.encrypted.metadata).toBeDefined();
       expect(result.encrypted.actions).toBeDefined();
-      expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.symmetricKey).toBeInstanceOf(Uint8Array);
+      }
     });
   });
 

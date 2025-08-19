@@ -4,6 +4,23 @@ import { getPublicClient } from '../../../../src/api/viem';
 import { ABIs } from '../../../../src/abi';
 import { INetworkConfig } from '../../../../src/types/network.type';
 
+// Test types (commented out to fix linter warnings)
+// interface MockClient {
+//   readContract: jest.Mock;
+// }
+
+// interface MockProposal {
+//   id: number;
+//   title: string;
+//   description: string;
+//   executed: boolean;
+//   approvals: number;
+// }
+
+// type MockABIs = {
+//   OptimisticTokenVotingPlugin: unknown[];
+// };
+
 // Mock dependencies
 jest.mock('../../../../src/api/dao/public-proposal/getPublicProposal');
 jest.mock('../../../../src/api/viem');
@@ -25,6 +42,7 @@ describe('getPublicProposals', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -116,7 +134,7 @@ describe('getPublicProposals', () => {
       const result = await getPublicProposals(mockConfig);
 
       expect(mockGetPublicClient).toHaveBeenCalledWith(mockConfig);
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalledWith({
+      expect(mockClient.readContract as any).toHaveBeenCalledWith({
         abi: ABIs.OptimisticTokenVotingPlugin,
         address: mockConfig.contracts.OptimisticTokenVotingPlugin,
         functionName: 'proposalCount',
@@ -137,7 +155,7 @@ describe('getPublicProposals', () => {
 
       const result = await getPublicProposals(mockConfig);
 
-      expect((mockClient.readContract as jest.Mock)).toHaveBeenCalled();
+      expect(mockClient.readContract as any).toHaveBeenCalled();
       expect(console.info).toHaveBeenCalledWith(`Public proposal count: ${proposalCount}`);
       expect(mockGetPublicProposal).not.toHaveBeenCalled();
       expect(result).toEqual([]);
@@ -439,15 +457,9 @@ describe('getPublicProposals', () => {
 
       // Simulate different response times
       mockGetPublicProposal
-        .mockImplementationOnce(
-          () => new Promise((resolve) => setTimeout(() => resolve(mockProposals[0] as any), 100)),
-        )
-        .mockImplementationOnce(
-          () => new Promise((resolve) => setTimeout(() => resolve(mockProposals[1] as any), 50)),
-        )
-        .mockImplementationOnce(
-          () => new Promise((resolve) => setTimeout(() => resolve(mockProposals[2] as any), 10)),
-        );
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[0] as any), 100)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[1] as any), 50)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[2] as any), 10)));
 
       const startTime = Date.now();
       const result = await getPublicProposals(mockConfig);

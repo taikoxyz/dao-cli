@@ -106,7 +106,7 @@ async function handleApproveStandard(
       return;
     }
 
-    const txHash = await approveStandardProposal(config, walletClient, publicClient as any, proposalSelect);
+    const txHash = await approveStandardProposal(config, walletClient, publicClient, proposalSelect);
 
     console.info(`\n✅ Standard proposal approved successfully!`);
     console.info(`Transaction hash: ${txHash}`);
@@ -165,7 +165,7 @@ async function handleApproveEmergency(
       return;
     }
 
-    const txHash = await approveEmergencyProposal(config, walletClient, publicClient as any, proposalSelect);
+    const txHash = await approveEmergencyProposal(config, walletClient, publicClient, proposalSelect);
 
     console.info(`\n✅ Emergency proposal approved successfully!`);
     console.info(`Transaction hash: ${txHash}`);
@@ -224,7 +224,7 @@ async function handleExecuteStandard(
       return;
     }
 
-    const txHash = await executeStandardProposal(config, walletClient, publicClient as any, proposalSelect);
+    const txHash = await executeStandardProposal(config, walletClient, publicClient, proposalSelect);
 
     console.info(`\n✅ Standard proposal executed successfully!`);
     console.info(`Transaction hash: ${txHash}`);
@@ -283,7 +283,7 @@ async function handleExecuteEmergency(
       return;
     }
 
-    const txHash = await executeEmergencyProposal(config, walletClient, publicClient as any, proposalSelect);
+    const txHash = await executeEmergencyProposal(config, walletClient, publicClient, proposalSelect);
 
     console.info(`\n✅ Emergency proposal executed successfully!`);
     console.info(`Transaction hash: ${txHash}`);

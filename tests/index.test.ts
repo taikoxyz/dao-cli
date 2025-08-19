@@ -3,6 +3,15 @@ import { selectNetworkPrompt } from '../src/api/selectNetwork.prompt';
 import connectEnvWallet from '../src/api/web3/connectEnvWallet';
 import { selectMainMenuPrompt } from '../src/cli/mainMenu.prompt';
 import { INetworkConfig } from '../src/types/network.type';
+import { MockWalletClient } from './types/common.test';
+
+// Test types
+// Unused interface commented out to fix linter warning
+// interface MockWalletClient {
+//   account: {
+//     address: string;
+//   };
+// }
 
 // Mock all dependencies
 jest.mock('../src/api/cache');
@@ -14,7 +23,7 @@ jest.mock('../src/cli/mainMenu.prompt');
 jest.mock('../src/util/stringifyJsonWithBigInt');
 
 const mockCache = cache as jest.Mocked<typeof cache>;
-// const _mockGetContractsPrompt = getContractsPrompt as jest.MockedFunction<typeof getContractsPrompt>;
+// const _mockGetContractsPrompt = getContractsPrompt as unknown;
 // const _mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<
 //   typeof interactWithContractPrompt
 // >;
@@ -30,7 +39,7 @@ jest.spyOn(process, 'exit').mockImplementation(() => {
 
 describe('main index.ts', () => {
   let mockConfig: INetworkConfig;
-  let mockWalletClient: Record<string, unknown>;
+  let mockWalletClient: MockWalletClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,6 +51,7 @@ describe('main index.ts', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',

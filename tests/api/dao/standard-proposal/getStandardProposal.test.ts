@@ -2,6 +2,7 @@ import getStandardProposal from '../../../../src/api/dao/standard-proposal/getSt
 import { getPublicClient } from '../../../../src/api/viem';
 import getIpfsFile, { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFile';
 import { INetworkConfig } from '../../../../src/types/network.type';
+import { MockPublicClient } from '../../../types/common.test';
 
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/ipfs/getIpfsFile');
@@ -12,7 +13,7 @@ const mockGetIpfsFileSafe = getIpfsFileSafe as jest.MockedFunction<typeof getIpf
 
 describe('getStandardProposal', () => {
   let mockConfig: INetworkConfig;
-  let mockPublicClient: Record<string, unknown>;
+  let mockPublicClient: MockPublicClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -25,6 +26,7 @@ describe('getStandardProposal', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -83,7 +85,7 @@ describe('getStandardProposal', () => {
       ...mockMetadata,
     });
     expect(mockPublicClient.readContract).toHaveBeenCalledWith({
-      abi: expect.any(Array),
+      abi: expect.any(Array) as unknown[],
       address: mockConfig.contracts.MultisigPlugin,
       functionName: 'getProposal',
       args: [proposalId],
@@ -121,7 +123,10 @@ describe('getStandardProposal', () => {
     const result = await getStandardProposal(proposalId, mockConfig);
 
     expect(result).toBeUndefined(); // Function returns undefined on error
-    expect(console.error).toHaveBeenCalledWith(`Error fetching standard proposal ${proposalId}:`, expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(
+      `Error fetching standard proposal ${proposalId}:`,
+      expect.any(Error) as Error,
+    );
   });
 
   it('should handle contract read errors', async () => {

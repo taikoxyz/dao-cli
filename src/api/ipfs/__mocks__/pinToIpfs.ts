@@ -1,3 +1,4 @@
+/* global jest */
 export const pinJsonToIpfs = jest.fn();
 
 export const testIpfsPinning = jest.fn(async () => {

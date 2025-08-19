@@ -2,6 +2,7 @@ import getEmergencyProposal from '../../../../src/api/dao/emergency-proposal/get
 import { getPublicClient } from '../../../../src/api/viem';
 import getIpfsFile from '../../../../src/api/ipfs/getIpfsFile';
 import { INetworkConfig } from '../../../../src/types/network.type';
+import { MockPublicClient } from '../../../types/common.test';
 
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/ipfs/getIpfsFile');
@@ -11,7 +12,7 @@ const mockGetIpfsFile = getIpfsFile as jest.MockedFunction<typeof getIpfsFile>;
 
 describe('getEmergencyProposal', () => {
   let mockConfig: INetworkConfig;
-  let mockPublicClient: Record<string, unknown>;
+  let mockPublicClient: MockPublicClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -24,6 +25,7 @@ describe('getEmergencyProposal', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
@@ -85,7 +87,7 @@ describe('getEmergencyProposal', () => {
       description: 'You must be a Security Council member to view this proposal',
     });
     expect(mockPublicClient.readContract).toHaveBeenCalledWith({
-      abi: expect.any(Array),
+      abi: expect.any(Array) as unknown[],
       address: mockConfig.contracts.EmergencyMultisigPlugin,
       functionName: 'getProposal',
       args: [proposalId],
