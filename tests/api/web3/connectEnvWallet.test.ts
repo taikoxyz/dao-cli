@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { holesky, mainnet } from 'viem/chains';
 import connectEnvWallet from '../../../src/api/web3/connectEnvWallet';
 import { INetworkConfig } from '../../../src/types/network.type';
 
@@ -8,6 +9,10 @@ import { INetworkConfig } from '../../../src/types/network.type';
 jest.mock('dotenv');
 jest.mock('viem');
 jest.mock('viem/accounts');
+jest.mock('viem/chains', () => ({
+  holesky: { id: 17000, name: 'Holesky' },
+  mainnet: { id: 1, name: 'Ethereum' },
+}));
 
 const mockDotenv = dotenv as jest.Mocked<typeof dotenv>;
 const mockCreateWalletClient = createWalletClient as jest.MockedFunction<typeof createWalletClient>;
@@ -66,8 +71,8 @@ describe('connectEnvWallet', () => {
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(mockPrivateKey);
       expect(mockCreateWalletClient).toHaveBeenCalledWith({
-        ...mockConfig,
         account: mockAccount,
+        chain: holesky,
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
@@ -83,8 +88,8 @@ describe('connectEnvWallet', () => {
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(mockPrivateKey);
       expect(mockCreateWalletClient).toHaveBeenCalledWith({
-        ...mockConfig,
         account: mockAccount,
+        chain: mainnet,
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
@@ -259,8 +264,8 @@ describe('connectEnvWallet', () => {
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);
       expect(mockCreateWalletClient).toHaveBeenCalledWith({
-        ...mockConfig,
         account: mockAccount,
+        chain: holesky,
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
@@ -279,8 +284,8 @@ describe('connectEnvWallet', () => {
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);
       expect(mockCreateWalletClient).toHaveBeenCalledWith({
-        ...mockConfig,
         account: mockAccount,
+        chain: mainnet,
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);

@@ -359,7 +359,9 @@ describe('selectMainMenuPrompt', () => {
 
   describe('Delegates', () => {
     it('should fetch and display delegates when no delegates exist', async () => {
-      mockSelect.mockResolvedValueOnce('Delegates');
+      mockSelect
+        .mockResolvedValueOnce('Delegates')
+        .mockResolvedValueOnce('View Delegates');
 
       // Mock delegate functions
       mockGetDelegateCount.mockResolvedValueOnce(0);
@@ -408,7 +410,10 @@ describe('selectMainMenuPrompt', () => {
         },
       };
 
-      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1'); // Select first delegate
+      mockSelect
+        .mockResolvedValueOnce('Delegates')
+        .mockResolvedValueOnce('View Delegates')
+        .mockResolvedValueOnce('0xdelegate1'); // Select first delegate
 
       mockGetDelegateCount.mockResolvedValueOnce(2);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);
@@ -463,7 +468,10 @@ describe('selectMainMenuPrompt', () => {
         },
       ];
 
-      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1');
+      mockSelect
+        .mockResolvedValueOnce('Delegates')
+        .mockResolvedValueOnce('View Delegates')
+        .mockResolvedValueOnce('0xdelegate1');
 
       mockGetDelegateCount.mockResolvedValueOnce(1);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);

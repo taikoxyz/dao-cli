@@ -3,6 +3,7 @@ import { INetworkConfig } from '../../types/network.type';
 // import { getPublicClient, getWalletClient } from '../viem';
 import { Address, createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { holesky, mainnet } from 'viem/chains';
 
 // Load environment variables
 dotenv.config();
@@ -21,8 +22,8 @@ export default async function connectEnvWallet(config: INetworkConfig): Promise<
   }
 
   const walletClient = createWalletClient({
-    ...config,
     account: privateKeyToAccount(privateKey),
+    chain: config.network === 'holesky' ? holesky : mainnet,
     transport: http(config.urls.rpc),
   });
 
