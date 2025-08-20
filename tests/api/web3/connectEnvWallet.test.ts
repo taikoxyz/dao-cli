@@ -16,28 +16,29 @@ const mockPrivateKeyToAccount = privateKeyToAccount as jest.MockedFunction<typeo
 describe('connectEnvWallet', () => {
   let mockConfig: INetworkConfig;
   let mockWalletClient: WalletClient;
-  let mockAccount: any;
+  let mockAccount: Record<string, unknown>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -52,8 +53,8 @@ describe('connectEnvWallet', () => {
       transport: { url: 'https://rpc.example.com' },
     } as any;
 
-    mockPrivateKeyToAccount.mockReturnValue(mockAccount);
-    mockCreateWalletClient.mockReturnValue(mockWalletClient);
+    mockPrivateKeyToAccount.mockReturnValue(mockAccount as any);
+    mockCreateWalletClient.mockReturnValue(mockWalletClient as any);
   });
 
   describe('successful wallet connection', () => {
@@ -132,7 +133,7 @@ describe('connectEnvWallet', () => {
     });
 
     it('should use fallback 0x for unsupported network', async () => {
-      mockConfig.network = 'unsupported-network' as any;
+      mockConfig.network = 'unsupported-network' as 'holesky' | 'mainnet';
       delete process.env.HOLESKY_PRIVATE_KEY;
       delete process.env.MAINNET_PRIVATE_KEY;
 
@@ -177,7 +178,7 @@ describe('connectEnvWallet', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           account: mockAccount,
-        })
+        }),
       );
     });
 
@@ -190,7 +191,7 @@ describe('connectEnvWallet', () => {
       expect(mockCreateWalletClient).toHaveBeenCalledWith(
         expect.objectContaining({
           transport: http(mockConfig.urls.rpc),
-        })
+        }),
       );
     });
   });
@@ -230,7 +231,7 @@ describe('connectEnvWallet', () => {
     it('should prioritize correct environment variable based on network', async () => {
       const holeskyKey = '0x1111111111111111111111111111111111111111111111111111111111111111';
       const mainnetKey = '0x2222222222222222222222222222222222222222222222222222222222222222';
-      
+
       process.env.HOLESKY_PRIVATE_KEY = holeskyKey;
       process.env.MAINNET_PRIVATE_KEY = mainnetKey;
 
@@ -253,7 +254,7 @@ describe('connectEnvWallet', () => {
     it('should handle complete workflow for holesky network', async () => {
       const privateKey = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       process.env.HOLESKY_PRIVATE_KEY = privateKey;
-      
+
       const result = await connectEnvWallet(mockConfig);
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);
@@ -263,14 +264,17 @@ describe('connectEnvWallet', () => {
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
-      expect(result.account).toBe(mockAccount);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.account).toBe(mockAccount);
+      }
     });
 
     it('should handle complete workflow for mainnet network', async () => {
       const privateKey = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       process.env.MAINNET_PRIVATE_KEY = privateKey;
       mockConfig.network = 'mainnet';
-      
+
       const result = await connectEnvWallet(mockConfig);
 
       expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKey);
@@ -280,7 +284,10 @@ describe('connectEnvWallet', () => {
         transport: http(mockConfig.urls.rpc),
       });
       expect(result).toBe(mockWalletClient);
-      expect(result.account).toBe(mockAccount);
+      expect(result).toBeDefined();
+      if (result) {
+        expect(result.account).toBe(mockAccount);
+      }
     });
   });
 });

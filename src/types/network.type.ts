@@ -2,6 +2,7 @@ import { Address } from 'viem';
 
 export interface INetworkConfig {
   network: string;
+  chainId: number;
   urls: {
     rpc: string;
     explorer: string;

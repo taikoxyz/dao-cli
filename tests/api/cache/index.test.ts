@@ -63,10 +63,7 @@ describe('JsonCache', () => {
 
       await cache.set('testKey', 'testValue');
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"testKey":\s*"testValue"/)
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"testKey":\s*"testValue"/));
     });
 
     it('should handle write errors', async () => {
@@ -96,19 +93,19 @@ describe('JsonCache', () => {
     });
 
     it('should return typed value', async () => {
-      const mockData = { 
+      const mockData = {
         stringKey: 'string value',
         numberKey: 42,
         booleanKey: true,
         objectKey: { nested: 'value' },
-        arrayKey: [1, 2, 3]
+        arrayKey: [1, 2, 3],
       };
       mockFs.readFile.mockResolvedValue(JSON.stringify(mockData));
 
       const stringResult = await cache.get<string>('stringKey');
       const numberResult = await cache.get<number>('numberKey');
       const booleanResult = await cache.get<boolean>('booleanKey');
-      const objectResult = await cache.get<{nested: string}>('objectKey');
+      const objectResult = await cache.get<{ nested: string }>('objectKey');
       const arrayResult = await cache.get<number[]>('arrayKey');
 
       expect(stringResult).toBe('string value');
@@ -126,10 +123,7 @@ describe('JsonCache', () => {
 
       await cache.set('newKey', 'newValue');
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"newKey":\s*"newValue"/)
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"newKey":\s*"newValue"/));
     });
 
     it('should update existing key', async () => {
@@ -138,10 +132,7 @@ describe('JsonCache', () => {
 
       await cache.set('existingKey', 'newValue');
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"existingKey":\s*"newValue"/)
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"existingKey":\s*"newValue"/));
     });
 
     it('should handle complex objects', async () => {
@@ -152,16 +143,13 @@ describe('JsonCache', () => {
         nested: {
           array: [1, 2, 3],
           boolean: true,
-          null_value: null
-        }
+          null_value: null,
+        },
       };
 
       await cache.set('complexKey', complexObject);
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringContaining('"complexKey"')
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringContaining('"complexKey"'));
     });
   });
 
@@ -173,10 +161,7 @@ describe('JsonCache', () => {
       const result = await cache.delete('key1');
 
       expect(result).toBe(true);
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.not.stringContaining('"key1"')
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.not.stringContaining('"key1"'));
     });
 
     it('should return false for non-existing key', async () => {
@@ -262,23 +247,14 @@ describe('JsonCache', () => {
       const newData = {
         key1: 'value1',
         key2: 'value2',
-        key3: { nested: 'object' }
+        key3: { nested: 'object' },
       };
 
       await cache.setMultiple(newData);
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"existing":\s*"value"/)
-      );
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"key1":\s*"value1"/)
-      );
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"key2":\s*"value2"/)
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"existing":\s*"value"/));
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"key1":\s*"value1"/));
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"key2":\s*"value2"/));
     });
 
     it('should merge with existing data', async () => {
@@ -287,23 +263,14 @@ describe('JsonCache', () => {
 
       const newData = {
         overwrite: 'new',
-        additional: 'data'
+        additional: 'data',
       };
 
       await cache.setMultiple(newData);
 
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"existing":\s*"value"/)
-      );
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"overwrite":\s*"new"/)
-      );
-      expect(mockFs.writeFile).toHaveBeenCalledWith(
-        testFilePath,
-        expect.stringMatching(/"additional":\s*"data"/)
-      );
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"existing":\s*"value"/));
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"overwrite":\s*"new"/));
+      expect(mockFs.writeFile).toHaveBeenCalledWith(testFilePath, expect.stringMatching(/"additional":\s*"data"/));
     });
   });
 
@@ -329,12 +296,7 @@ describe('JsonCache', () => {
       const mockData = { key1: 'value1', key2: 'value2' };
       mockFs.readFile.mockResolvedValue(JSON.stringify(mockData));
 
-      const promises = [
-        cache.get('key1'),
-        cache.get('key2'),
-        cache.has('key1'),
-        cache.keys()
-      ];
+      const promises = [cache.get('key1'), cache.get('key2'), cache.has('key1'), cache.keys()];
 
       const results = await Promise.all(promises);
 
@@ -351,7 +313,7 @@ describe('JsonCache', () => {
       const promises = [
         cache.set('key1', 'value1'),
         cache.set('key2', 'value2'),
-        cache.setMultiple({ key3: 'value3', key4: 'value4' })
+        cache.setMultiple({ key3: 'value3', key4: 'value4' }),
       ];
 
       await expect(Promise.all(promises)).resolves.toBeDefined();

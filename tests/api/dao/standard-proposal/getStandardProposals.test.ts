@@ -3,6 +3,7 @@ import getStandardProposal from '../../../../src/api/dao/standard-proposal/getSt
 import { getPublicClient } from '../../../../src/api/viem';
 import { INetworkConfig } from '../../../../src/types/network.type';
 import { Address } from 'viem';
+// Removed unused imports: MockPublicClient, MockProposal
 
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/dao/standard-proposal/getStandardProposal');
@@ -10,6 +11,7 @@ jest.mock('../../../../src/api/dao/standard-proposal/getStandardProposal');
 describe('getStandardProposals', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x0000000000000000000000000000000000000001' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,
@@ -41,7 +43,7 @@ describe('getStandardProposals', () => {
   it('should fetch all standard proposals and return them in reverse order', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(3n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -61,7 +63,7 @@ describe('getStandardProposals', () => {
     const result = await getStandardProposals(mockConfig);
 
     expect(mockReadContract).toHaveBeenCalledWith({
-      abi: expect.any(Array),
+      abi: expect.any(Array) as any[],
       address: mockConfig.contracts.MultisigPlugin,
       functionName: 'proposalCount',
       args: [],
@@ -73,18 +75,14 @@ describe('getStandardProposals', () => {
     expect(mockGetStandardProposal).toHaveBeenNthCalledWith(3, 2, mockConfig);
 
     expect(console.info).toHaveBeenCalledWith('Standard proposal count: 3');
-    
-    expect(result).toEqual([
-      mockProposals[2],
-      mockProposals[1],
-      mockProposals[0],
-    ]);
+
+    expect(result).toEqual([mockProposals[2], mockProposals[1], mockProposals[0]]);
   });
 
   it('should filter out undefined proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(4n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -108,7 +106,7 @@ describe('getStandardProposals', () => {
   it('should handle zero proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(0n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -124,7 +122,7 @@ describe('getStandardProposals', () => {
   it('should handle large number of proposals', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(100n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -139,13 +137,13 @@ describe('getStandardProposals', () => {
 
     expect(mockGetStandardProposal).toHaveBeenCalledTimes(100);
     expect(result).toHaveLength(100);
-    expect(result![0]).toEqual({ id: 99, title: 'Proposal 99' });
-    expect(result![99]).toEqual({ id: 0, title: 'Proposal 0' });
+    expect(result?.[0]).toEqual({ id: 99, title: 'Proposal 99' });
+    expect(result?.[99]).toEqual({ id: 0, title: 'Proposal 0' });
   });
 
   it('should handle errors and log them', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
-    
+
     const mockReadContract = jest.fn().mockRejectedValue(new Error('Contract read failed'));
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -153,14 +151,14 @@ describe('getStandardProposals', () => {
 
     const result = await getStandardProposals(mockConfig);
 
-    expect(console.error).toHaveBeenCalledWith(expect.any(Error));
+    expect(console.error).toHaveBeenCalledWith(expect.any(Error) as any);
     expect(result).toBeUndefined();
   });
 
   it('should handle errors in individual proposal fetches', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(3n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -181,7 +179,7 @@ describe('getStandardProposals', () => {
   it('should use Promise.all for parallel fetching', async () => {
     const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPublicClient>;
     const mockGetStandardProposal = getStandardProposal as jest.MockedFunction<typeof getStandardProposal>;
-    
+
     const mockReadContract = jest.fn().mockResolvedValue(5n);
     mockGetPublicClient.mockReturnValue({
       readContract: mockReadContract,
@@ -190,10 +188,9 @@ describe('getStandardProposals', () => {
     // Create promises that resolve at different times to test parallelism
     const delays = [50, 10, 30, 5, 20];
     delays.forEach((delay, index) => {
-      mockGetStandardProposal.mockImplementationOnce(() => 
-        new Promise(resolve => 
-          setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay)
-        )
+      mockGetStandardProposal.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => setTimeout(() => resolve({ id: index, title: `Proposal ${index}` } as any), delay)),
       );
     });
 

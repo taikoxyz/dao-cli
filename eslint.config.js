@@ -5,13 +5,13 @@ const tsParser = require('@typescript-eslint/parser');
 module.exports = [
   eslint.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json'
+        project: './tsconfig.eslint.json'
       },
       globals: {
         console: 'readonly',
@@ -29,7 +29,8 @@ module.exports = [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         setImmediate: 'readonly',
-        clearImmediate: 'readonly'
+        clearImmediate: 'readonly',
+        fetch: 'readonly'
       }
     },
     plugins: {
@@ -56,6 +57,26 @@ module.exports = [
     }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'jest.config.js', 'tests/**']
+    files: ['tests/**/*.ts'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        jest: 'readonly'
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off'
+    }
+  },
+  {
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'jest.config.js']
   }
 ];

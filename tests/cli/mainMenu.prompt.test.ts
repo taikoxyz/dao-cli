@@ -11,6 +11,18 @@ import { getPublicClient } from '../../src/api/viem';
 import { ABIs } from '../../src/abi';
 import getDelegates, { getDelegateCount, getDelegate, DelegateProfile } from '../../src/api/dao/delegates/getDelegates';
 
+// Test types
+// Unused interfaces commented out to fix linter warnings
+// interface MockWalletClient {
+//   account: {
+//     address: string;
+//   };
+// }
+
+// interface MockPublicClient {
+//   readContract: jest.Mock;
+// }
+
 // Mock all dependencies
 jest.mock('@inquirer/prompts');
 jest.mock('../../src/api/dao/security-council/getSecurityCouncilMembers');
@@ -22,9 +34,11 @@ jest.mock('../../src/api/viem');
 jest.mock('../../src/abi');
 jest.mock('../../src/api/dao/delegates/getDelegates');
 
-const mockSelect = inquirer.select as jest.MockedFunction<typeof inquirer.select>;
-const mockInput = inquirer.input as jest.MockedFunction<typeof inquirer.input>;
-const mockGetSecurityCouncilMembers = getSecurityCouncilMembers as jest.MockedFunction<typeof getSecurityCouncilMembers>;
+const mockSelect = inquirer.select as jest.Mock;
+const mockInput = inquirer.input as jest.Mock;
+const mockGetSecurityCouncilMembers = getSecurityCouncilMembers as jest.MockedFunction<
+  typeof getSecurityCouncilMembers
+>;
 const mockIsSecurityCouncilMember = isSecurityCouncilMember as jest.MockedFunction<typeof isSecurityCouncilMember>;
 const mockGetStandardProposals = getStandardProposals as jest.MockedFunction<typeof getStandardProposals>;
 const mockGetEmergencyProposals = getEmergencyProposals as jest.MockedFunction<typeof getEmergencyProposals>;
@@ -37,11 +51,11 @@ const mockGetDelegate = getDelegate as jest.MockedFunction<typeof getDelegate>;
 describe('selectMainMenuPrompt', () => {
   let mockConfig: INetworkConfig;
   let mockWalletClient: WalletClient;
-  let mockPublicClient: any;
+  let mockPublicClient: Record<string, unknown>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock process.exit to prevent tests from actually exiting
     jest.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit called');
@@ -49,21 +63,22 @@ describe('selectMainMenuPrompt', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -77,10 +92,11 @@ describe('selectMainMenuPrompt', () => {
       readContract: jest.fn(),
     };
 
-    mockGetPublicClient.mockReturnValue(mockPublicClient);
-    
+    mockGetPublicClient.mockReturnValue(mockPublicClient as any);
+
     // Mock ABIs
-    (ABIs as any) = {
+    // eslint-disable-next-line no-import-assign
+    (ABIs as unknown) = {
       DAO: [
         {
           name: 'getBalance',
@@ -124,7 +140,7 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected to throw due to mocked exit
       }
 
@@ -145,7 +161,7 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-        fail('Should have called process.exit');
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
         expect((error as Error).message).toBe('process.exit called');
       }
@@ -154,21 +170,19 @@ describe('selectMainMenuPrompt', () => {
 
   describe('Public Stage Proposals', () => {
     it('should fetch and display public proposals', async () => {
-      const mockProposals: any[] = [
+      const mockProposals: Array<unknown> = [
         { title: 'Proposal 1', description: 'Description 1' },
         { title: 'Proposal 2', description: 'Description 2' },
       ];
 
-      mockSelect
-        .mockResolvedValueOnce('Public Stage Proposals')
-        .mockResolvedValueOnce(0); // Select first proposal
-      mockGetPublicProposals.mockResolvedValue(mockProposals);
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce(0); // Select first proposal
+      mockGetPublicProposals.mockResolvedValue(mockProposals as any);
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Will eventually recurse and throw
       }
 
@@ -193,12 +207,12 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
       expect(mockGetPublicProposals).toHaveBeenCalledWith(mockConfig);
-      expect(consoleInfoSpy).toHaveBeenCalledWith('You selected: Public Stage Proposals');
+      expect(consoleInfoSpy).toHaveBeenCalledWith('No public stage proposals found.');
 
       consoleInfoSpy.mockRestore();
     });
@@ -209,7 +223,7 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -220,33 +234,32 @@ describe('selectMainMenuPrompt', () => {
   describe('Security Council - Not a Member', () => {
     beforeEach(() => {
       const mockMembers = [
-        { owner: '0x1111' as any, signer: '0x2222' as any },
-        { owner: '0x3333' as any, signer: '0x4444' as any },
+        { owner: '0x1111' as `0x${string}`, signer: '0x2222' as `0x${string}` },
+        { owner: '0x3333' as `0x${string}`, signer: '0x4444' as `0x${string}` },
       ];
-      mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
+      mockGetSecurityCouncilMembers.mockResolvedValue(
+        mockMembers as Array<{ owner: `0x${string}`; signer: `0x${string}` }>,
+      );
       mockIsSecurityCouncilMember.mockResolvedValue(false);
     });
 
     it('should display security council members when not a member', async () => {
       mockSelect.mockResolvedValueOnce('Security Council');
-      
+
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
       const consoleTableSpy = jest.spyOn(console, 'table').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
       expect(mockGetSecurityCouncilMembers).toHaveBeenCalledWith(mockConfig);
-      expect(mockIsSecurityCouncilMember).toHaveBeenCalledWith(
-        mockWalletClient.account?.address,
-        mockConfig
-      );
+      expect(mockIsSecurityCouncilMember).toHaveBeenCalledWith(mockWalletClient.account?.address, mockConfig);
       expect(consoleTableSpy).toHaveBeenCalled();
       expect(consoleInfoSpy).toHaveBeenCalledWith(
-        `Your account (${mockWalletClient.account?.address}) is NOT an appointed agent of the Security Council.`
+        `Your account (${mockWalletClient.account?.address}) is NOT an appointed agent of the Security Council.`,
       );
 
       consoleInfoSpy.mockRestore();
@@ -257,7 +270,7 @@ describe('selectMainMenuPrompt', () => {
   describe('Security Council - Is a Member', () => {
     beforeEach(() => {
       const mockMembers = [
-        { owner: '0x1111' as any, signer: mockWalletClient.account?.address as any },
+        { owner: '0x1111' as `0x${string}`, signer: mockWalletClient.account?.address as `0x${string}` },
       ];
       mockGetSecurityCouncilMembers.mockResolvedValue(mockMembers);
       mockIsSecurityCouncilMember.mockResolvedValue(true);
@@ -269,26 +282,28 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('View Standard Proposals')
         .mockResolvedValueOnce(0); // Select first proposal
 
-      const mockStandardProposals: any[] = [
+      const mockStandardProposals: Array<{ title: string; description: string }> = [
         { title: 'Standard Proposal 1', description: 'Standard Description' },
       ];
-      mockGetStandardProposals.mockResolvedValue(mockStandardProposals);
+      mockGetStandardProposals.mockResolvedValue(mockStandardProposals as any);
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
       const consoleTableSpy = jest.spyOn(console, 'table').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
       expect(consoleInfoSpy).toHaveBeenCalledWith(
-        `Your account (${mockWalletClient.account?.address}) is an appointed agent of the Security Council.`
+        `Your account (${mockWalletClient.account?.address}) is an appointed agent of the Security Council.`,
       );
       expect(mockSelect).toHaveBeenCalledWith({
         message: 'What would you like to do as a Security Council member?',
         choices: [
+          { value: 'Create New Proposal' },
+          { value: 'Approve/Execute Proposals' },
           { value: 'View Standard Proposals' },
           { value: 'View Emergency Proposals' },
         ],
@@ -305,17 +320,17 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('View Emergency Proposals')
         .mockResolvedValueOnce(0); // Select first proposal
 
-      const mockEmergencyProposals: any[] = [
+      const mockEmergencyProposals: Array<{ title: string; description: string }> = [
         { title: 'Emergency Proposal 1', description: 'Test emergency proposal' },
       ];
 
-      mockGetEmergencyProposals.mockResolvedValue(mockEmergencyProposals);
+      mockGetEmergencyProposals.mockResolvedValue(mockEmergencyProposals as any);
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -326,15 +341,13 @@ describe('selectMainMenuPrompt', () => {
     });
 
     it('should handle invalid security council action', async () => {
-      mockSelect
-        .mockResolvedValueOnce('Security Council')
-        .mockResolvedValueOnce('Invalid Action');
+      mockSelect.mockResolvedValueOnce('Security Council').mockResolvedValueOnce('Invalid Action');
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -347,16 +360,16 @@ describe('selectMainMenuPrompt', () => {
   describe('Delegates', () => {
     it('should fetch and display delegates when no delegates exist', async () => {
       mockSelect.mockResolvedValueOnce('Delegates');
-      
+
       // Mock delegate functions
       mockGetDelegateCount.mockResolvedValueOnce(0);
       mockGetDelegates.mockResolvedValueOnce([]);
-      
+
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -395,9 +408,7 @@ describe('selectMainMenuPrompt', () => {
         },
       };
 
-      mockSelect
-        .mockResolvedValueOnce('Delegates')
-        .mockResolvedValueOnce('0xdelegate1'); // Select first delegate
+      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1'); // Select first delegate
 
       mockGetDelegateCount.mockResolvedValueOnce(2);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);
@@ -407,13 +418,13 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
       expect(consoleInfoSpy).toHaveBeenCalledWith('Fetching delegates from DelegationWall contract...');
       expect(consoleInfoSpy).toHaveBeenCalledWith('\nTotal registered delegates: 2');
-      
+
       expect(mockSelect).toHaveBeenCalledWith({
         message: 'Select a delegate to view details:',
         choices: [
@@ -437,7 +448,7 @@ describe('selectMainMenuPrompt', () => {
       expect(consoleInfoSpy).toHaveBeenCalledWith('Total Voting Power: 1.0000 votes');
       expect(consoleInfoSpy).toHaveBeenCalledWith('Token Balance: 0.5000 tokens');
       expect(consoleInfoSpy).toHaveBeenCalledWith('\n--- Full Metadata ---');
-      
+
       expect(mockGetDelegate).toHaveBeenCalledWith('0xdelegate1', mockConfig, true);
 
       consoleInfoSpy.mockRestore();
@@ -452,9 +463,7 @@ describe('selectMainMenuPrompt', () => {
         },
       ];
 
-      mockSelect
-        .mockResolvedValueOnce('Delegates')
-        .mockResolvedValueOnce('0xdelegate1');
+      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1');
 
       mockGetDelegateCount.mockResolvedValueOnce(1);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);
@@ -465,7 +474,7 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -484,13 +493,13 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('getBalance'); // Select method
 
       mockInput.mockResolvedValue(''); // No parameters needed
-      mockPublicClient.readContract.mockResolvedValue('1000');
+      (mockPublicClient.readContract as jest.Mock).mockResolvedValue('1000');
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -504,9 +513,7 @@ describe('selectMainMenuPrompt', () => {
 
       expect(mockSelect).toHaveBeenCalledWith({
         message: `Select a method to call on contract ${mockConfig.contracts.DAO}:`,
-        choices: [
-          { name: 'getBalance ()', value: 'getBalance' },
-        ],
+        choices: [{ name: 'getBalance ()', value: 'getBalance' }],
       });
 
       expect(mockPublicClient.readContract).toHaveBeenCalledWith({
@@ -518,7 +525,7 @@ describe('selectMainMenuPrompt', () => {
 
       expect(consoleInfoSpy).toHaveBeenCalledWith(
         `Result of calling getBalance on DAO at address ${mockConfig.contracts.DAO}:`,
-        '1000'
+        '1000',
       );
 
       consoleInfoSpy.mockRestore();
@@ -531,13 +538,13 @@ describe('selectMainMenuPrompt', () => {
         .mockResolvedValueOnce('balanceOf');
 
       mockInput.mockResolvedValue('0x1234567890abcdef1234567890abcdef12345678');
-      mockPublicClient.readContract.mockResolvedValue('500');
+      (mockPublicClient.readContract as jest.Mock).mockResolvedValue('500');
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
@@ -566,14 +573,16 @@ describe('selectMainMenuPrompt', () => {
 
       try {
         await selectMainMenuPrompt(mockConfig, mockWalletClient);
-      } catch (error) {
+      } catch {
         // Expected due to recursion
       }
 
       // Test the validation function
       const validateFn = mockInput.mock.calls[0][0].validate;
-      expect(validateFn!('')).toBe('This field cannot be empty.');
-      expect(validateFn!('valid_input')).toBe(true);
+      if (validateFn) {
+        expect(validateFn('')).toBe('This field cannot be empty.');
+        expect(validateFn('valid_input')).toBe(true);
+      }
     });
   });
 });

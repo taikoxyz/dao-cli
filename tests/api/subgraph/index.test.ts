@@ -4,14 +4,23 @@ import { getPublicProposalsFromSubgraph } from '../../../src/api/subgraph/public
 import { getSecurityCouncilMembersFromSubgraph } from '../../../src/api/subgraph/securityCouncil';
 import { fetchPublicProposalsFromSubgraph, fetchAllPublicProposalsFromSubgraph } from '../../../src/api/subgraph/index';
 import { INetworkConfig } from '../../../src/types/network.type';
+import { getNetworkCache } from '../../../src/api/cache';
+import { MockFetch } from '../../types/common.test';
 
 // Mock dependencies
 jest.mock('../../../src/api/ipfs/getIpfsFile');
-jest.mock('../../../src/api/cache');
+jest.mock('../../../src/api/cache', () => ({
+  getNetworkCache: jest.fn(() => ({
+    has: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+  })),
+}));
 
 // Mock fetch globally
+/* global Response */
 global.fetch = jest.fn();
-const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+const mockFetch = fetch as jest.MockedFunction<MockFetch>;
 
 describe('Subgraph API', () => {
   let mockConfig: INetworkConfig;
@@ -22,21 +31,22 @@ describe('Subgraph API', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -55,7 +65,7 @@ describe('Subgraph API', () => {
               metadata: '0x697066733a2f2f516d5465737431', // hex for ipfs://QmTest1
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator1',
             },
             {
@@ -63,7 +73,7 @@ describe('Subgraph API', () => {
               metadata: '0x697066733a2f2f516d5465737432', // hex for ipfs://QmTest2
               creationBlockNumber: '1234567891',
               executionBlockNumber: '1234567900',
-              approvers: [{id: '0x1'}, {id: '0x2'}, {id: '0x3'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }, { id: '0x3' }],
               creator: '0xcreator2',
             },
           ],
@@ -84,7 +94,7 @@ describe('Subgraph API', () => {
         mockConfig.subgraph,
         expect.objectContaining({
           method: 'POST',
-        })
+        }),
       );
     });
 
@@ -120,7 +130,7 @@ describe('Subgraph API', () => {
               metadata: '0x656e637279707465645f646174615f31', // hex for encrypted_data_1
               creationBlockNumber: '1234567890',
               executionBlockNumber: null,
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creator: '0xcreator1',
             },
           ],
@@ -129,7 +139,7 @@ describe('Subgraph API', () => {
               id: '1',
               encryptedPayloadURI: '0x656e637279707465645f646174615f31',
               creator: '0xcreator1',
-              approvers: [{id: '0x1'}, {id: '0x2'}],
+              approvers: [{ id: '0x1' }, { id: '0x2' }],
               creationBlockNumber: '1234567890',
             },
           ],
@@ -239,7 +249,7 @@ describe('Subgraph API', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: expect.stringContaining('"first":100'),
-        })
+        }),
       );
     });
 
@@ -247,7 +257,16 @@ describe('Subgraph API', () => {
       const mockResponse = {
         data: {
           optimisticTokenVotingProposals: [
-            { id: '3', metadata: 'test', creator: 'c', startDate: '1', endDate: '2', creatorAddress: '0x1', contractEventId: 'e', creationBlockNumber: '1' },
+            {
+              id: '3',
+              metadata: 'test',
+              creator: 'c',
+              startDate: '1',
+              endDate: '2',
+              creatorAddress: '0x1',
+              contractEventId: 'e',
+              creationBlockNumber: '1',
+            },
           ],
         },
       };
@@ -264,7 +283,7 @@ describe('Subgraph API', () => {
         mockConfig.subgraph,
         expect.objectContaining({
           body: expect.stringContaining('"first":50,"skip":10'),
-        })
+        }),
       );
     });
 
@@ -282,7 +301,9 @@ describe('Subgraph API', () => {
         statusText: 'Internal Server Error',
       } as Response);
 
-      await expect(fetchPublicProposalsFromSubgraph(mockConfig)).rejects.toThrow('Subgraph request failed: 500 Internal Server Error');
+      await expect(fetchPublicProposalsFromSubgraph(mockConfig)).rejects.toThrow(
+        'Subgraph request failed: 500 Internal Server Error',
+      );
     });
 
     it('should handle invalid response data', async () => {
@@ -310,9 +331,11 @@ describe('Subgraph API', () => {
     });
 
     it('should throw error if subgraph endpoint is not defined', async () => {
-      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
+      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(fetchPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow('Subgraph endpoint is not defined in network config');
+      await expect(
+        fetchPublicProposalsFromSubgraph(configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
   });
 
@@ -396,9 +419,11 @@ describe('Subgraph API', () => {
     });
 
     it('should throw error if subgraph endpoint is not defined', async () => {
-      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined } as any;
+      const configWithoutSubgraph = { ...mockConfig, subgraph: undefined };
 
-      await expect(fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph)).rejects.toThrow('Subgraph endpoint is not defined in network config');
+      await expect(
+        fetchAllPublicProposalsFromSubgraph(configWithoutSubgraph as unknown as INetworkConfig),
+      ).rejects.toThrow('Subgraph endpoint is not defined in network config');
     });
 
     it('should propagate errors from fetchPublicProposalsFromSubgraph', async () => {
@@ -410,15 +435,18 @@ describe('Subgraph API', () => {
 
   describe('getSecurityCouncilMembersFromSubgraph', () => {
     it('should fetch security council members from subgraph', async () => {
+      const mockGetNetworkCache = getNetworkCache as jest.MockedFunction<typeof getNetworkCache>;
+      mockGetNetworkCache.mockReturnValue({
+        has: jest.fn().mockResolvedValue(false),
+        get: jest.fn(),
+        set: jest.fn(),
+      } as any);
+
       const mockResponse = {
         data: {
           signerListMembers: [
-            { 
-              approvers: [
-                { id: '0xmember1' },
-                { id: '0xmember2' },
-                { id: '0xmember3' },
-              ]
+            {
+              approvers: [{ id: '0xmember1' }, { id: '0xmember2' }, { id: '0xmember3' }],
             },
           ],
         },
@@ -440,6 +468,13 @@ describe('Subgraph API', () => {
     });
 
     it('should handle empty member list', async () => {
+      const mockGetNetworkCache = getNetworkCache as jest.MockedFunction<typeof getNetworkCache>;
+      mockGetNetworkCache.mockReturnValue({
+        has: jest.fn().mockResolvedValue(false),
+        get: jest.fn(),
+        set: jest.fn(),
+      } as any);
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: { signerListMembers: [] } }),

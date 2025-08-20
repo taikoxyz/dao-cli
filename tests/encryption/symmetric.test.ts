@@ -1,10 +1,5 @@
 import sodium from 'libsodium-wrappers';
-import {
-  encrypt,
-  decryptString,
-  decryptBytes,
-  generateSymmetricKey,
-} from '../../src/api/encryption/symmetric';
+import { encrypt, decryptString, decryptBytes, generateSymmetricKey } from '../../src/api/encryption/symmetric';
 
 describe('Symmetric Encryption', () => {
   beforeAll(async () => {
@@ -36,9 +31,9 @@ describe('Symmetric Encryption', () => {
     it('should encrypt a string message', () => {
       const message = 'Hello, World!';
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(message, key);
-      
+
       expect(encrypted).toBeInstanceOf(Uint8Array);
       expect(encrypted.length).toBeGreaterThan(message.length);
     });
@@ -46,9 +41,9 @@ describe('Symmetric Encryption', () => {
     it('should encrypt a Uint8Array message', () => {
       const message = new Uint8Array([1, 2, 3, 4, 5]);
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(message, key);
-      
+
       expect(encrypted).toBeInstanceOf(Uint8Array);
       expect(encrypted.length).toBeGreaterThan(message.length);
     });
@@ -56,10 +51,10 @@ describe('Symmetric Encryption', () => {
     it('should produce different ciphertext for the same message (due to random nonce)', () => {
       const message = 'Same message';
       const key = generateSymmetricKey();
-      
+
       const encrypted1 = encrypt(message, key);
       const encrypted2 = encrypt(message, key);
-      
+
       expect(encrypted1).not.toEqual(encrypted2);
     });
   });
@@ -68,30 +63,30 @@ describe('Symmetric Encryption', () => {
     it('should decrypt an encrypted string message', () => {
       const originalMessage = 'Hello, World!';
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       const decrypted = decryptString(encrypted, key);
-      
+
       expect(decrypted).toBe(originalMessage);
     });
 
     it('should handle empty string', () => {
       const originalMessage = '';
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       const decrypted = decryptString(encrypted, key);
-      
+
       expect(decrypted).toBe(originalMessage);
     });
 
     it('should handle unicode characters', () => {
       const originalMessage = '🔒 Encrypted message with emojis! 中文 العربية';
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       const decrypted = decryptString(encrypted, key);
-      
+
       expect(decrypted).toBe(originalMessage);
     });
 
@@ -99,9 +94,9 @@ describe('Symmetric Encryption', () => {
       const originalMessage = 'Secret message';
       const key1 = generateSymmetricKey();
       const key2 = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key1);
-      
+
       expect(() => {
         decryptString(encrypted, key2);
       }).toThrow();
@@ -112,27 +107,27 @@ describe('Symmetric Encryption', () => {
     it('should decrypt an encrypted Uint8Array message', () => {
       const originalMessage = new Uint8Array([1, 2, 3, 4, 5, 255]);
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       const decrypted = decryptBytes(encrypted, key);
-      
+
       expect(decrypted).toEqual(originalMessage);
     });
 
     it('should handle empty Uint8Array', () => {
       const originalMessage = new Uint8Array([]);
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       const decrypted = decryptBytes(encrypted, key);
-      
+
       expect(decrypted).toEqual(originalMessage);
     });
 
     it('should throw error for invalid payload length', () => {
       const key = generateSymmetricKey();
       const invalidPayload = new Uint8Array([1, 2, 3]); // Too short
-      
+
       expect(() => {
         decryptBytes(invalidPayload, key);
       }).toThrow('Invalid encrypted payload');
@@ -141,11 +136,11 @@ describe('Symmetric Encryption', () => {
     it('should throw error with corrupted data', () => {
       const originalMessage = new Uint8Array([1, 2, 3, 4, 5]);
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(originalMessage, key);
       // Corrupt the data
-      encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] ^ 0xFF;
-      
+      encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] ^ 0xff;
+
       expect(() => {
         decryptBytes(encrypted, key);
       }).toThrow();
@@ -156,10 +151,10 @@ describe('Symmetric Encryption', () => {
     it('should maintain data integrity for large messages', () => {
       const largeMessage = 'A'.repeat(10000);
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(largeMessage, key);
       const decrypted = decryptString(encrypted, key);
-      
+
       expect(decrypted).toBe(largeMessage);
     });
 
@@ -169,10 +164,10 @@ describe('Symmetric Encryption', () => {
         binaryData[i] = i;
       }
       const key = generateSymmetricKey();
-      
+
       const encrypted = encrypt(binaryData, key);
       const decrypted = decryptBytes(encrypted, key);
-      
+
       expect(decrypted).toEqual(binaryData);
     });
   });

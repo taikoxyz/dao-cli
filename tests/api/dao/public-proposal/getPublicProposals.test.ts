@@ -4,6 +4,23 @@ import { getPublicClient } from '../../../../src/api/viem';
 import { ABIs } from '../../../../src/abi';
 import { INetworkConfig } from '../../../../src/types/network.type';
 
+// Test types (commented out to fix linter warnings)
+// interface MockClient {
+//   readContract: jest.Mock;
+// }
+
+// interface MockProposal {
+//   id: number;
+//   title: string;
+//   description: string;
+//   executed: boolean;
+//   approvals: number;
+// }
+
+// type MockABIs = {
+//   OptimisticTokenVotingPlugin: unknown[];
+// };
+
 // Mock dependencies
 jest.mock('../../../../src/api/dao/public-proposal/getPublicProposal');
 jest.mock('../../../../src/api/viem');
@@ -14,32 +31,33 @@ const mockGetPublicClient = getPublicClient as jest.MockedFunction<typeof getPub
 
 describe('getPublicProposals', () => {
   let mockConfig: INetworkConfig;
-  let mockClient: any;
+  let mockClient: Record<string, unknown>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods
     jest.spyOn(console, 'info').mockImplementation();
     jest.spyOn(console, 'error').mockImplementation();
-    
+
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -47,9 +65,10 @@ describe('getPublicProposals', () => {
       readContract: jest.fn(),
     };
 
-    mockGetPublicClient.mockReturnValue(mockClient);
-    
+    mockGetPublicClient.mockReturnValue(mockClient as any);
+
     // Mock ABIs
+    // eslint-disable-next-line no-import-assign
     (ABIs as any) = {
       OptimisticTokenVotingPlugin: [
         {
@@ -70,43 +89,43 @@ describe('getPublicProposals', () => {
   describe('successful proposal fetching', () => {
     it('should fetch and return public proposals', async () => {
       const proposalCount = 3n;
-      const mockProposals: any[] = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+      const mockProposals: Array<unknown> = [
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
-          title: 'Proposal 2', 
+        {
+          id: 1,
+          title: 'Proposal 2',
           description: 'Description 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test2',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(mockProposals[0] as any)
         .mockResolvedValueOnce(mockProposals[1] as any)
@@ -115,7 +134,7 @@ describe('getPublicProposals', () => {
       const result = await getPublicProposals(mockConfig);
 
       expect(mockGetPublicClient).toHaveBeenCalledWith(mockConfig);
-      expect(mockClient.readContract).toHaveBeenCalledWith({
+      expect(mockClient.readContract as any).toHaveBeenCalledWith({
         abi: ABIs.OptimisticTokenVotingPlugin,
         address: mockConfig.contracts.OptimisticTokenVotingPlugin,
         functionName: 'proposalCount',
@@ -132,11 +151,11 @@ describe('getPublicProposals', () => {
     it('should handle zero proposals', async () => {
       const proposalCount = 0n;
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
 
       const result = await getPublicProposals(mockConfig);
 
-      expect(mockClient.readContract).toHaveBeenCalled();
+      expect(mockClient.readContract as any).toHaveBeenCalled();
       expect(console.info).toHaveBeenCalledWith(`Public proposal count: ${proposalCount}`);
       expect(mockGetPublicProposal).not.toHaveBeenCalled();
       expect(result).toEqual([]);
@@ -144,19 +163,19 @@ describe('getPublicProposals', () => {
 
     it('should handle single proposal', async () => {
       const proposalCount = 1n;
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Single Proposal', 
+      const mockProposal: Record<string, unknown> = {
+        id: 0,
+        title: 'Single Proposal',
         description: 'Single Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://single',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal.mockResolvedValue(mockProposal as any);
 
       const result = await getPublicProposals(mockConfig);
@@ -169,33 +188,33 @@ describe('getPublicProposals', () => {
     it('should filter out undefined proposals', async () => {
       const proposalCount = 4n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
         undefined, // This should be filtered out
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
         undefined, // This should be filtered out
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(mockProposals[0] as any)
         .mockResolvedValueOnce(mockProposals[1] as any)
@@ -211,42 +230,42 @@ describe('getPublicProposals', () => {
     it('should reverse the order of proposals', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'First', 
+        {
+          id: 0,
+          title: 'First',
           description: 'First proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://first',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
-          title: 'Second', 
+        {
+          id: 1,
+          title: 'Second',
           description: 'Second proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://second',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
-          title: 'Third', 
+        {
+          id: 2,
+          title: 'Third',
           description: 'Third proposal',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://third',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(mockProposals[0] as any)
         .mockResolvedValueOnce(mockProposals[1] as any)
@@ -256,7 +275,7 @@ describe('getPublicProposals', () => {
 
       expect(result).toEqual([
         mockProposals[2], // Third -> First
-        mockProposals[1], // Second -> Second  
+        mockProposals[1], // Second -> Second
         mockProposals[0], // First -> Third
       ]);
     });
@@ -265,7 +284,7 @@ describe('getPublicProposals', () => {
   describe('error handling', () => {
     it('should handle contract read errors', async () => {
       const contractError = new Error('Contract call failed');
-      mockClient.readContract.mockRejectedValue(contractError);
+      (mockClient.readContract as jest.Mock).mockRejectedValue(contractError);
 
       const result = await getPublicProposals(mockConfig);
 
@@ -276,32 +295,32 @@ describe('getPublicProposals', () => {
     it('should handle individual proposal fetch errors', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
-          title: 'Proposal 1', 
+        {
+          id: 0,
+          title: 'Proposal 1',
           description: 'Description 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
         undefined, // Simulate error by returning undefined
-        { 
-          id: 2, 
-          title: 'Proposal 3', 
+        {
+          id: 2,
+          title: 'Proposal 3',
           description: 'Description 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://test3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(mockProposals[0] as any)
         .mockResolvedValueOnce(mockProposals[1] as any)
@@ -315,7 +334,7 @@ describe('getPublicProposals', () => {
 
     it('should handle network errors', async () => {
       const networkError = new Error('Network connection failed');
-      mockClient.readContract.mockRejectedValue(networkError);
+      (mockClient.readContract as jest.Mock).mockRejectedValue(networkError);
 
       const result = await getPublicProposals(mockConfig);
 
@@ -326,10 +345,8 @@ describe('getPublicProposals', () => {
     it('should handle all proposal fetches failing', async () => {
       const proposalCount = 2n;
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
-      mockGetPublicProposal
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValueOnce(undefined);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
+      mockGetPublicProposal.mockResolvedValueOnce(undefined).mockResolvedValueOnce(undefined);
 
       const result = await getPublicProposals(mockConfig);
 
@@ -340,19 +357,19 @@ describe('getPublicProposals', () => {
   describe('proposal count handling', () => {
     it('should handle large proposal count', async () => {
       const proposalCount = 100n;
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Proposal', 
+      const mockProposal: Record<string, unknown> = {
+        id: 0,
+        title: 'Proposal',
         description: 'Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://large',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal.mockResolvedValue(mockProposal as any);
 
       const result = await getPublicProposals(mockConfig);
@@ -364,7 +381,7 @@ describe('getPublicProposals', () => {
     it('should convert BigInt proposal count to number correctly', async () => {
       const proposalCount = 5n;
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal.mockResolvedValue({ id: 0, title: 'Test' } as any);
 
       await getPublicProposals(mockConfig);
@@ -378,19 +395,19 @@ describe('getPublicProposals', () => {
 
     it('should handle string representation of proposal count', async () => {
       const proposalCount = '10'; // Some contracts might return string
-      const mockProposal: any = { 
-        id: 0, 
-        title: 'Proposal', 
+      const mockProposal: Record<string, unknown> = {
+        id: 0,
+        title: 'Proposal',
         description: 'Description',
         executed: false,
         approvals: [],
         parameters: {},
         metadataURI: 'ipfs://string',
         actions: [],
-        proposalId: [0]
+        proposalId: [0],
       };
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal.mockResolvedValue(mockProposal as any);
 
       const result = await getPublicProposals(mockConfig);
@@ -404,45 +421,45 @@ describe('getPublicProposals', () => {
     it('should fetch all proposals concurrently', async () => {
       const proposalCount = 3n;
       const mockProposals = [
-        { 
-          id: 0, 
+        {
+          id: 0,
           title: 'Proposal 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 1, 
+        {
+          id: 1,
           title: 'Proposal 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent2',
           actions: [],
-          proposalId: [1]
+          proposalId: [1],
         },
-        { 
-          id: 2, 
+        {
+          id: 2,
           title: 'Proposal 3',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://concurrent3',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
-      
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
+
       // Simulate different response times
       mockGetPublicProposal
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[0] as any), 100)))
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[1] as any), 50)))
-        .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(mockProposals[2] as any), 10)));
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[0] as any), 100)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[1] as any), 50)))
+        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[2] as any), 10)));
 
       const startTime = Date.now();
       const result = await getPublicProposals(mockConfig);
@@ -478,7 +495,7 @@ describe('getPublicProposals', () => {
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(mockProposals[0] as any)
         .mockResolvedValueOnce(mockProposals[1] as any);
@@ -496,29 +513,29 @@ describe('getPublicProposals', () => {
     it('should handle mixed success/failure scenarios', async () => {
       const proposalCount = 4n;
       const successfulProposals = [
-        { 
-          id: 0, 
+        {
+          id: 0,
           title: 'Successful Proposal 1',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://success1',
           actions: [],
-          proposalId: [0]
+          proposalId: [0],
         },
-        { 
-          id: 2, 
+        {
+          id: 2,
           title: 'Successful Proposal 2',
           executed: false,
           approvals: [],
           parameters: {},
           metadataURI: 'ipfs://success2',
           actions: [],
-          proposalId: [2]
+          proposalId: [2],
         },
       ];
 
-      mockClient.readContract.mockResolvedValue(proposalCount);
+      (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
       mockGetPublicProposal
         .mockResolvedValueOnce(successfulProposals[0] as any)
         .mockResolvedValueOnce(undefined) // Failed

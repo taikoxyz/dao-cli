@@ -19,7 +19,7 @@ describe('stringifyJsonWithBigInt', () => {
       };
 
       const result = JSON.stringify(obj);
-      
+
       expect(typeof result).toBe('string');
       const parsed = JSON.parse(result);
       expect(parsed.normalNumber).toBe(42);
@@ -39,7 +39,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.level1.level2.bigIntValue).toBe('999999999999999999999');
       expect(parsed.level1.level2.regularValue).toBe('test');
     });
@@ -52,16 +52,16 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.numbers).toEqual([1, '123', 3, '456']);
       expect(parsed.mixed).toEqual(['string', '789', true, null]);
     });
 
     it('should handle BigInt at root level', () => {
       const bigIntValue = BigInt('987654321098765432109876543210');
-      
+
       const result = JSON.stringify(bigIntValue);
-      
+
       expect(result).toBe('"987654321098765432109876543210"');
     });
 
@@ -74,7 +74,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.zero).toBe('0');
       expect(parsed.positive).toBe('1');
       expect(parsed.negative).toBe('-1');
@@ -93,8 +93,10 @@ describe('stringifyJsonWithBigInt', () => {
       };
 
       const result = JSON.stringify(obj);
-      
-      expect(result).toBe('{"string":"hello","number":42,"boolean":true,"null_value":null,"array":[1,2,3],"nested":{"key":"value"}}');
+
+      expect(result).toBe(
+        '{"string":"hello","number":42,"boolean":true,"null_value":null,"array":[1,2,3],"nested":{"key":"value"}}',
+      );
     });
 
     it('should handle undefined values correctly', () => {
@@ -106,7 +108,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.defined).toBe('value');
       expect(parsed.undefined_value).toBeUndefined();
       expect(parsed.bigint).toBe('123');
@@ -122,9 +124,9 @@ describe('stringifyJsonWithBigInt', () => {
 
     it('should handle arrays correctly', () => {
       const arr = [1, 'string', true, null, BigInt(456)];
-      
+
       const result = JSON.stringify(arr);
-      
+
       expect(result).toBe('[1,"string",true,null,"456"]');
     });
   });
@@ -137,14 +139,14 @@ describe('stringifyJsonWithBigInt', () => {
         bigint: BigInt(123),
       };
 
-      const replacer = (key: string, value: any) => {
+      const replacer = (key: string, value: unknown) => {
         if (key === 'remove') return undefined;
         return value;
       };
 
       const result = JSON.stringify(obj, replacer);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.keep).toBe('this');
       expect(parsed.remove).toBeUndefined();
       expect(parsed.bigint).toBe('123');
@@ -159,7 +161,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj, ['keep', 'normalNumber']);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.keep).toBe('this');
       expect(parsed.remove).toBeUndefined();
       expect(parsed.normalNumber).toBe(123);
@@ -172,7 +174,7 @@ describe('stringifyJsonWithBigInt', () => {
         string: 'test',
       };
 
-      const replacer = (key: string, value: any) => {
+      const replacer = (key: string, value: unknown) => {
         if (key === 'multiplier' && typeof value === 'number') {
           return value * 2;
         }
@@ -181,7 +183,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj, replacer);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.multiplier).toBe(4); // 2 * 2
       expect(parsed.bigint).toBe('100'); // BigInt converted to string
       expect(parsed.string).toBe('test');
@@ -196,7 +198,7 @@ describe('stringifyJsonWithBigInt', () => {
       };
 
       const result = JSON.stringify(obj, null, 2);
-      
+
       expect(result).toContain('  "key": "value"');
       expect(result).toContain('  "bigint": "123"');
     });
@@ -208,7 +210,7 @@ describe('stringifyJsonWithBigInt', () => {
       };
 
       const result = JSON.stringify(obj, null, '  ');
-      
+
       expect(result).toContain('  "key": "value"');
       expect(result).toContain('  "bigint": "456"');
     });
@@ -216,7 +218,7 @@ describe('stringifyJsonWithBigInt', () => {
 
   describe('edge cases', () => {
     it('should handle circular references (should throw)', () => {
-      const obj: any = { key: 'value' };
+      const obj: Record<string, unknown> = { key: 'value' };
       obj.circular = obj;
 
       expect(() => {
@@ -247,7 +249,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.data.transactions[0].id).toBe('1');
       expect(parsed.data.transactions[0].amount).toBe('1000000000000000000');
       expect(parsed.data.transactions[1].id).toBe('2');
@@ -264,7 +266,7 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.veryLarge).toBe('123456789012345678901234567890123456789012345678901234567890');
       expect(parsed.maxSafeInteger).toBe(Number.MAX_SAFE_INTEGER.toString());
       expect(parsed.beyondMaxSafe).toBe((Number.MAX_SAFE_INTEGER + 1).toString());
@@ -279,11 +281,11 @@ describe('stringifyJsonWithBigInt', () => {
 
       const result = JSON.stringify(obj);
       const parsed = JSON.parse(result);
-      
+
       expect(parsed.computed).toBe('456');
       expect(parsed['string-key']).toBe('789');
       // Symbol properties are not included in JSON.stringify
-      expect(parsed[Symbol.for('bigint') as any]).toBeUndefined();
+      expect((parsed as Record<symbol, unknown>)[Symbol.for('bigint')]).toBeUndefined();
     });
   });
 
@@ -291,14 +293,14 @@ describe('stringifyJsonWithBigInt', () => {
     it('should maintain proper function signature', () => {
       // This test ensures that the type assertion preserves the function signature
       const obj = { bigint: BigInt(123), normal: 'value' };
-      
+
       // Should accept all the same parameters as original JSON.stringify
       const result1 = JSON.stringify(obj);
       const result2 = JSON.stringify(obj, null);
       const result3 = JSON.stringify(obj, null, 2);
       const result4 = JSON.stringify(obj, ['normal']); // Don't include bigint in array replacer
       const result5 = JSON.stringify(obj, (key, value) => value);
-      
+
       expect(typeof result1).toBe('string');
       expect(typeof result2).toBe('string');
       expect(typeof result3).toBe('string');

@@ -17,6 +17,7 @@ jest.mock('../../src/abi', () => ({
 describe('getContractsPrompt', () => {
   const mockConfig: INetworkConfig = {
     network: 'mainnet',
+    chainId: 1,
     contracts: {
       DAO: '0x1234567890123456789012345678901234567890' as Address,
       VotingToken: '0x0000000000000000000000000000000000000002' as Address,
@@ -169,8 +170,8 @@ describe('getContractsPrompt', () => {
       ...mockConfig,
       contracts: {
         ...mockConfig.contracts,
-        EmergencyMultisigPlugin: undefined as any,
-        OptimisticTokenVotingPlugin: undefined as any,
+        EmergencyMultisigPlugin: undefined as unknown as `0x${string}`,
+        OptimisticTokenVotingPlugin: undefined as unknown as `0x${string}`,
       },
     };
 
@@ -214,7 +215,7 @@ describe('getContractsPrompt', () => {
 
     const callArgs = (mockSelect as jest.Mock).mock.calls[0][0];
     const choices = callArgs.choices;
-    const values = choices.map((c: any) => c.value);
+    const values = choices.map((c: Record<string, unknown>) => c.value);
 
     expect(values).toEqual(['DAO', 'MultisigPlugin', 'EmergencyMultisigPlugin', 'OptimisticTokenVotingPlugin']);
   });

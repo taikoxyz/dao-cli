@@ -1,10 +1,17 @@
 import { cache } from '../src/api/cache';
-import getContractsPrompt from '../src/api/getContracts.prompt';
-import interactWithContractPrompt from '../src/api/interactWithContract.prompt';
 import { selectNetworkPrompt } from '../src/api/selectNetwork.prompt';
 import connectEnvWallet from '../src/api/web3/connectEnvWallet';
 import { selectMainMenuPrompt } from '../src/cli/mainMenu.prompt';
 import { INetworkConfig } from '../src/types/network.type';
+import { MockWalletClient } from './types/common.test';
+
+// Test types
+// Unused interface commented out to fix linter warning
+// interface MockWalletClient {
+//   account: {
+//     address: string;
+//   };
+// }
 
 // Mock all dependencies
 jest.mock('../src/api/cache');
@@ -16,24 +23,27 @@ jest.mock('../src/cli/mainMenu.prompt');
 jest.mock('../src/util/stringifyJsonWithBigInt');
 
 const mockCache = cache as jest.Mocked<typeof cache>;
-const mockGetContractsPrompt = getContractsPrompt as jest.MockedFunction<typeof getContractsPrompt>;
-const mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<typeof interactWithContractPrompt>;
+// const _mockGetContractsPrompt = getContractsPrompt as unknown;
+// const _mockInteractWithContractPrompt = interactWithContractPrompt as jest.MockedFunction<
+//   typeof interactWithContractPrompt
+// >;
 const mockSelectNetworkPrompt = selectNetworkPrompt as jest.MockedFunction<typeof selectNetworkPrompt>;
 const mockConnectEnvWallet = connectEnvWallet as jest.MockedFunction<typeof connectEnvWallet>;
 const mockSelectMainMenuPrompt = selectMainMenuPrompt as jest.MockedFunction<typeof selectMainMenuPrompt>;
 
 // Mock process.exit to prevent tests from actually exiting
-const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+// Mock process.exit to prevent tests from actually exiting
+jest.spyOn(process, 'exit').mockImplementation(() => {
   throw new Error('process.exit called');
 });
 
 describe('main index.ts', () => {
   let mockConfig: INetworkConfig;
-  let mockWalletClient: any;
+  let mockWalletClient: MockWalletClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods
     jest.spyOn(console, 'info').mockImplementation();
     jest.spyOn(console, 'warn').mockImplementation();
@@ -41,21 +51,22 @@ describe('main index.ts', () => {
 
     mockConfig = {
       network: 'holesky',
+      chainId: 17000,
       urls: {
         rpc: 'https://rpc.holesky.ethpandaops.io',
         explorer: 'https://holesky.etherscan.io',
       },
       subgraph: 'https://subgraph.holesky.example.com',
       contracts: {
-        DAO: '0x1234567890abcdef1234567890abcdef12345678' as any,
-        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as any,
-        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as any,
-        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as any,
-        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as any,
-        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as any,
-        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as any,
-        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as any,
-        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as any,
+        DAO: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+        VotingToken: '0x2345678901abcdef2345678901abcdef23456789' as `0x${string}`,
+        TaikoBridge: '0x3456789012abcdef3456789012abcdef34567890' as `0x${string}`,
+        MultisigPlugin: '0x4567890123abcdef4567890123abcdef45678901' as `0x${string}`,
+        EmergencyMultisigPlugin: '0x5678901234abcdef5678901234abcdef56789012' as `0x${string}`,
+        OptimisticTokenVotingPlugin: '0x6789012345abcdef6789012345abcdef67890123' as `0x${string}`,
+        SignerList: '0x7890123456abcdef7890123456abcdef78901234' as `0x${string}`,
+        EncryptionRegistry: '0x8901234567abcdef8901234567abcdef89012345' as `0x${string}`,
+        DelegationWall: '0x9012345678abcdef9012345678abcdef90123456' as `0x${string}`,
       },
     };
 
@@ -66,7 +77,7 @@ describe('main index.ts', () => {
     };
 
     mockSelectNetworkPrompt.mockResolvedValue(mockConfig);
-    mockConnectEnvWallet.mockResolvedValue(mockWalletClient);
+    mockConnectEnvWallet.mockResolvedValue(mockWalletClient as any);
     mockCache.get.mockResolvedValue(undefined);
     mockCache.set.mockResolvedValue();
     mockCache.clear.mockResolvedValue();
@@ -79,7 +90,7 @@ describe('main index.ts', () => {
   describe('main function', () => {
     // Since main() is called at module level, we need to test by requiring the module
     // But since Jest has already loaded it, we'll test the main logic through indirect means
-    
+
     it('should be importable without throwing', () => {
       // The main test is that importing the index file doesn't throw
       // This tests the module structure and basic imports
@@ -91,7 +102,7 @@ describe('main index.ts', () => {
 
   describe('main function logic (through mock verification)', () => {
     // Since main() runs automatically, we need to isolate and test its components
-    
+
     beforeEach(() => {
       // Mock the main menu to prevent infinite recursion
       mockSelectMainMenuPrompt.mockImplementation(() => {
@@ -105,8 +116,8 @@ describe('main index.ts', () => {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
         // Give time for async main() to run
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw due to mocked exit
       }
 
@@ -115,14 +126,14 @@ describe('main index.ts', () => {
     });
 
     it('should handle cache operations for network changes', async () => {
-      const previousConfig = { ...mockConfig, network: 'mainnet' as any };
+      const previousConfig = { ...mockConfig, network: 'mainnet' as unknown };
       mockCache.get.mockResolvedValue(previousConfig);
 
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -136,8 +147,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -148,8 +159,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -162,8 +173,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -180,8 +191,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -194,8 +205,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -208,8 +219,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // Expected to throw
       }
 
@@ -224,8 +235,8 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      } catch {
         // May throw due to mocked functions
       }
 
@@ -235,13 +246,10 @@ describe('main index.ts', () => {
 
   describe('mainLoop function (if activated)', () => {
     // The mainLoop function is commented out but we can test its logic if needed
-    
+
     it('should be defined in the module structure', () => {
       // This verifies the mainLoop function exists in the code structure
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
       expect(indexContent).toContain('async function mainLoop');
     });
   });
@@ -253,7 +261,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Should propagate the error
         expect(error).toBeDefined();
@@ -269,7 +277,7 @@ describe('main index.ts', () => {
       try {
         delete require.cache[require.resolve('../src/index')];
         require('../src/index');
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       } catch (error) {
         // Expected to throw due to mocked main menu, not cache errors
         expect((error as Error).message).toBe('process.exit called');
@@ -279,11 +287,8 @@ describe('main index.ts', () => {
 
   describe('module imports and dependencies', () => {
     it('should import all required modules', () => {
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
-      
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
+
       const expectedImports = [
         './util/stringifyJsonWithBigInt',
         './api/cache',
@@ -295,17 +300,14 @@ describe('main index.ts', () => {
         './types/network.type',
       ];
 
-      expectedImports.forEach(importPath => {
+      expectedImports.forEach((importPath) => {
         expect(indexContent).toContain(importPath);
       });
     });
 
     it('should have proper async function structure', () => {
-      const indexContent = require('fs').readFileSync(
-        require.resolve('../src/index'), 
-        'utf8'
-      );
-      
+      const indexContent = require('fs').readFileSync(require.resolve('../src/index'), 'utf8');
+
       expect(indexContent).toContain('async function main()');
       expect(indexContent).toContain('main()');
     });
