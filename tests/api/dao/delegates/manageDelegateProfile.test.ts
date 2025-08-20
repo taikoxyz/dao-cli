@@ -8,11 +8,13 @@ import {
 import { getPublicClient } from '../../../../src/api/viem';
 import { pinJsonToIpfs } from '../../../../src/api/ipfs/pinToIpfs';
 import { getIpfsFileSafe } from '../../../../src/api/ipfs/getIpfsFile';
+import { getNetworkCache } from '../../../../src/api/cache';
 
 // Mock dependencies
 jest.mock('../../../../src/api/viem');
 jest.mock('../../../../src/api/ipfs/pinToIpfs');
 jest.mock('../../../../src/api/ipfs/getIpfsFile');
+jest.mock('../../../../src/api/cache');
 
 describe('manageDelegateProfile', () => {
   const mockConfig = {
@@ -35,9 +37,17 @@ describe('manageDelegateProfile', () => {
     waitForTransactionReceipt: jest.fn(),
   };
 
+  const mockCache = {
+    delete: jest.fn().mockResolvedValue(true),
+    get: jest.fn(),
+    set: jest.fn(),
+    has: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (getPublicClient as jest.Mock).mockReturnValue(mockPublicClient);
+    (getNetworkCache as jest.Mock).mockReturnValue(mockCache);
   });
 
   describe('checkDelegateProfileExists', () => {
@@ -110,6 +120,10 @@ describe('manageDelegateProfile', () => {
 
       expect(pinJsonToIpfs).toHaveBeenCalledWith(mockProfileData);
       expect(mockWalletClient.writeContract).toHaveBeenCalled();
+      
+      // Verify cache was cleared
+      expect(getNetworkCache).toHaveBeenCalledWith('testnet');
+      expect(mockCache.delete).toHaveBeenCalledWith('delegates-testnet');
     });
 
     it('should handle transaction failure', async () => {
