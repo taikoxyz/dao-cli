@@ -119,9 +119,9 @@ pnpm format  # Format code with Prettier
 
 - [ ] **v1.3.0 - Delegation & Governance**
     - [ ] Secure wallet connectivity without explicit private keys
-    - [ ] Delegate profile management
-    - [ ] Voting power delegation
-    - [ ] Public-stage proposal veto capabilities
+    - [x] Delegate profile management
+    - [x] Voting power delegation
+    - [x] Public-stage proposal veto capabilities
 
 ## Contributing
 

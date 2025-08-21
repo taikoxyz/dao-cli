@@ -115,13 +115,13 @@ export async function createOrUpdateDelegateProfile(
 
     if (receipt.status === 'success') {
       console.info('✅ Delegate profile successfully registered/updated!');
-      
+
       // Clear the delegates cache to ensure fresh data on next fetch
       const cache = getNetworkCache(config.network);
       const cacheKey = `delegates-${config.network}`;
       await cache.delete(cacheKey);
       console.info('📦 Cache cleared - delegate list will refresh on next view');
-      
+
       return { success: true, txHash, ipfsHash };
     } else {
       return { success: false, error: 'Transaction failed', txHash };
@@ -154,4 +154,3 @@ export async function fetchCurrentProfileForEdit(
     return null;
   }
 }
-

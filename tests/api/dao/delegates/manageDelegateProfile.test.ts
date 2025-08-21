@@ -120,7 +120,7 @@ describe('manageDelegateProfile', () => {
 
       expect(pinJsonToIpfs).toHaveBeenCalledWith(mockProfileData);
       expect(mockWalletClient.writeContract).toHaveBeenCalled();
-      
+
       // Verify cache was cleared
       expect(getNetworkCache).toHaveBeenCalledWith('testnet');
       expect(mockCache.delete).toHaveBeenCalledWith('delegates-testnet');
@@ -199,4 +199,3 @@ describe('manageDelegateProfile', () => {
     });
   });
 });
-

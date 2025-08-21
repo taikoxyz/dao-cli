@@ -166,4 +166,3 @@ export async function manageDelegateProfilePrompt(config: INetworkConfig, wallet
     console.error(error instanceof Error ? error.message : error);
   }
 }
-
