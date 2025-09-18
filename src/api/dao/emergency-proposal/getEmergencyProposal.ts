@@ -2,7 +2,7 @@ import { Address, hexToString } from 'viem';
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
-import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
+import { getIpfsFileSafe, isNotFoundMarker } from '../../ipfs/getIpfsFile';
 import { EncryptedProposalMetadata } from '../../../types/proposal.type';
 import { decrypt } from '../security-council/getDecryptionKey';
 
@@ -26,7 +26,14 @@ export default async function getEmergencyProposal(proposalId: number, config: I
     const encryptedPayload = await getIpfsFileSafe<EncryptedProposalMetadata>(rawUri);
 
     let decryptedMetadata = null;
-    if (encryptedPayload) {
+    if (isNotFoundMarker(encryptedPayload)) {
+      console.warn(`Encrypted payload not found for emergency proposal ${proposalId}, IPFS hash: ${rawUri}`);
+      decryptedMetadata = {
+        title: `[NOT FOUND]:${rawUri}`,
+        summary: `Encrypted payload not available for IPFS hash: ${rawUri}`,
+        description: `The encrypted proposal payload could not be retrieved from IPFS. Hash: ${rawUri}`,
+      };
+    } else if (encryptedPayload) {
       try {
         // Try to decrypt the proposal
         console.info('Attempting to decrypt emergency proposal...');

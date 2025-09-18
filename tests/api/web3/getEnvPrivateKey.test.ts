@@ -166,19 +166,20 @@ describe('getEnvPrivateKey', () => {
       expect(getEnvPrivateKey(mockConfig)).toBe('0x');
     });
 
-    it('should preserve private key format exactly as provided', () => {
-      // Test with 0x prefix
+    it('should normalize private key format', () => {
+      // Test with 0x prefix - should preserve it
       const keyWithPrefix = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       process.env.HOLESKY_PRIVATE_KEY = keyWithPrefix;
       mockConfig.network = 'holesky';
       expect(getEnvPrivateKey(mockConfig)).toBe(keyWithPrefix);
 
-      // Test without 0x prefix
+      // Test without 0x prefix - should add it
       const keyWithoutPrefix = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      const expectedNormalized = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       process.env.HOLESKY_PRIVATE_KEY = keyWithoutPrefix;
-      expect(getEnvPrivateKey(mockConfig)).toBe(keyWithoutPrefix);
+      expect(getEnvPrivateKey(mockConfig)).toBe(expectedNormalized);
 
-      // Test with odd formatting
+      // Test with odd formatting - should preserve case after 0x
       const oddFormattedKey = '0X1234ABCD';
       process.env.HOLESKY_PRIVATE_KEY = oddFormattedKey;
       expect(getEnvPrivateKey(mockConfig)).toBe(oddFormattedKey);

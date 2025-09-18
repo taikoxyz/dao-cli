@@ -7,10 +7,13 @@ import getStandardProposals from '../api/dao/standard-proposal/getStandardPropos
 import getEmergencyProposals from '../api/dao/emergency-proposal/getEmergencyProposals';
 import getPublicProposals from '../api/dao/public-proposal/getPublicProposals';
 import getDelegates, { getDelegateCount, getDelegate } from '../api/dao/delegates/getDelegates';
+import { manageDelegateProfilePrompt } from '../api/dao/delegates/manageDelegateProfile.prompt';
+import { delegateVotingPowerPrompt } from '../api/dao/delegates/delegateVotingPower.prompt';
 import { ABIs } from '../abi';
 import { getPublicClient } from '../api/viem';
 import { createProposalPrompt } from '../api/dao/security-council/createProposal.prompt';
 import { proposalActionsPrompt } from '../api/dao/security-council/proposalActions.prompt';
+import { vetoProposalPrompt } from '../api/dao/public-proposal/vetoProposal.prompt';
 
 export async function selectMainMenuPrompt(config: INetworkConfig, walletClient: WalletClient): Promise<void> {
   const address = walletClient.account?.address as `0x${string}`;
@@ -37,22 +40,37 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
 
   if (selected === 'Public Stage Proposals') {
     try {
-      const proposals = (await getPublicProposals(config)) || [];
-      if (proposals.length === 0) {
-        console.info('No public stage proposals found.');
+      const action = await select({
+        message: 'What would you like to do with public proposals?',
+        choices: [
+          { value: 'view', name: 'View Public Proposals' },
+          { value: 'veto', name: 'Veto a Public Proposal' },
+          { value: 'back', name: 'Back to Main Menu' },
+        ],
+      });
+
+      if (action === 'view') {
+        const proposals = (await getPublicProposals(config)) || [];
+        if (proposals.length === 0) {
+          console.info('No public stage proposals found.');
+          return selectMainMenuPrompt(config, walletClient);
+        }
+        const proposalSelect = await select({
+          message: 'Select a public stage proposal to view details:',
+          choices: proposals.map((proposal, index) => ({
+            name: `- #${index + 1}[ID:${proposal.proposalId || 'unknown'}] ${proposal.title}`,
+            value: index,
+          })),
+        });
+        const selectedProposal = proposals[proposalSelect];
+        console.info(selectedProposal);
+      } else if (action === 'veto') {
+        await vetoProposalPrompt(config, walletClient);
+      } else if (action === 'back') {
         return selectMainMenuPrompt(config, walletClient);
       }
-      const proposalSelect = await select({
-        message: 'Select a public stage proposal to view details:',
-        choices: proposals.map((proposal, index) => ({
-          name: `Proposal #${index + 1}: ${proposal.title}`,
-          value: index,
-        })),
-      });
-      const selectedProposal = proposals[proposalSelect];
-      console.info(selectedProposal);
     } catch (error) {
-      console.error('Error fetching public proposals:');
+      console.error('Error in public proposals module:');
       console.error(error instanceof Error ? error.message : error);
       console.info('Returning to main menu...');
     }
@@ -65,8 +83,11 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
       const members = await getSecurityCouncilMembers(config);
       console.info(`Security Council Members:`);
       console.table(members);
-      const isEnvAccountAppointedAgent = await isSecurityCouncilMember(address, config);
-      if (isEnvAccountAppointedAgent) {
+
+      // Check if the user is an appointed agent
+      const isAgent = await isSecurityCouncilMember(address, config);
+
+      if (isAgent) {
         console.info(`Your account (${address}) is an appointed agent of the Security Council.`);
 
         const nextAction = await select({
@@ -88,7 +109,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
           const proposalSelect = await select({
             message: 'Select a standard proposal to view details:',
             choices: proposals.map((proposal, index) => ({
-              name: `Proposal #${index + 1}: ${proposal.title}`,
+              name: `- #${index + 1}[ID:${proposal.proposalId || 'unknown'}] ${proposal.title}`,
               value: index,
             })),
           });
@@ -99,7 +120,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
           const proposalSelect = await select({
             message: 'Select an emergency proposal to view details:',
             choices: proposals.map((proposal, index) => ({
-              name: `Proposal #${index + 1}: ${proposal?.title}`,
+              name: `- #${index + 1}[ID:${proposal?.proposalId || 'unknown'}] ${proposal?.title || 'Untitled'}`,
               value: index,
             })),
           });
@@ -126,58 +147,73 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
 
   if (selected === 'Delegates') {
     try {
-      console.info('Fetching delegates from DelegationWall contract...');
+      const delegateAction = await select({
+        message: 'What would you like to do?',
+        choices: [
+          { value: 'View Delegates', name: 'View Delegates List' },
+          { value: 'Manage Profile', name: 'Create/Update My Delegate Profile' },
+          { value: 'Delegate Power', name: 'Delegate My Voting Power' },
+        ],
+      });
 
-      const delegateCount = await getDelegateCount(config);
-      console.info(`\nTotal registered delegates: ${delegateCount}`);
+      if (delegateAction === 'View Delegates') {
+        console.info('Fetching delegates from DelegationWall contract...');
 
-      const delegates = await getDelegates(config);
+        const delegateCount = await getDelegateCount(config);
+        console.info(`\nTotal registered delegates: ${delegateCount}`);
 
-      if (delegates.length === 0) {
-        console.info('No delegates have registered yet.');
-      } else {
-        const delegateSelect = await select({
-          message: 'Select a delegate to view details:',
-          choices: delegates.map((delegate) => {
-            // Build display name with identifier and full address
-            const identifier = delegate.identifier || 'Unnamed Delegate';
-            const displayName = `${identifier} - ${delegate.address}`;
-            return {
-              name: displayName,
-              value: delegate.address,
-            };
-          }),
-        });
+        const delegates = await getDelegates(config);
 
-        // Fetch full details including voting power for selected delegate
-        console.info('\nFetching delegate details and voting power...');
-        const fullProfile = await getDelegate(delegateSelect, config, true);
-
-        if (fullProfile) {
-          console.info('\n--- Delegate Profile ---');
-          console.info(`Identifier: ${fullProfile.identifier || 'Not specified'}`);
-          console.info(`Address: ${fullProfile.address}`);
-          console.info(`Content URL: ${fullProfile.contentUrl}`);
-
-          // Display voting power
-          if (fullProfile.votingPower !== undefined) {
-            const votingPowerFormatted = (Number(fullProfile.votingPower) / 1e18).toFixed(4);
-            const tokenBalanceFormatted = (Number(fullProfile.tokenBalance || 0n) / 1e18).toFixed(4);
-            console.info(`\n--- Voting Power ---`);
-            console.info(`Total Voting Power: ${votingPowerFormatted} votes`);
-            console.info(`Token Balance: ${tokenBalanceFormatted} tokens`);
-          }
-
-          if (fullProfile.metadata) {
-            console.info('\n--- Full Metadata ---');
-            console.info(JSON.stringify(fullProfile.metadata, null, 2));
-          }
+        if (delegates.length === 0) {
+          console.info('No delegates have registered yet.');
         } else {
-          console.error('Failed to fetch delegate details.');
+          const delegateSelect = await select({
+            message: 'Select a delegate to view details:',
+            choices: delegates.map((delegate) => {
+              // Build display name with identifier and full address
+              const identifier = delegate.identifier || 'Unnamed Delegate';
+              const displayName = `${identifier} - ${delegate.address}`;
+              return {
+                name: displayName,
+                value: delegate.address,
+              };
+            }),
+          });
+
+          // Fetch full details including voting power for selected delegate
+          console.info('\nFetching delegate details and voting power...');
+          const fullProfile = await getDelegate(delegateSelect, config, true);
+
+          if (fullProfile) {
+            console.info('\n--- Delegate Profile ---');
+            console.info(`Identifier: ${fullProfile.identifier || 'Not specified'}`);
+            console.info(`Address: ${fullProfile.address}`);
+            console.info(`Content URL: ${fullProfile.contentUrl}`);
+
+            // Display voting power
+            if (fullProfile.votingPower !== undefined) {
+              const votingPowerFormatted = (Number(fullProfile.votingPower) / 1e18).toFixed(4);
+              const tokenBalanceFormatted = (Number(fullProfile.tokenBalance || 0n) / 1e18).toFixed(4);
+              console.info(`\n--- Voting Power ---`);
+              console.info(`Total Voting Power: ${votingPowerFormatted} votes`);
+              console.info(`Token Balance: ${tokenBalanceFormatted} tokens`);
+            }
+
+            if (fullProfile.metadata) {
+              console.info('\n--- Full Metadata ---');
+              console.info(JSON.stringify(fullProfile.metadata, null, 2));
+            }
+          } else {
+            console.error('Failed to fetch delegate details.');
+          }
         }
+      } else if (delegateAction === 'Manage Profile') {
+        await manageDelegateProfilePrompt(config, walletClient);
+      } else if (delegateAction === 'Delegate Power') {
+        await delegateVotingPowerPrompt(config, walletClient);
       }
     } catch (error) {
-      console.error('Error fetching delegates:');
+      console.error('Error in Delegates module:');
       console.error(error instanceof Error ? error.message : error);
       console.info('Returning to main menu...');
     }

@@ -2,7 +2,7 @@ import { Address, hexToString } from 'viem';
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
-import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
+import { getIpfsFileSafe, isNotFoundMarker } from '../../ipfs/getIpfsFile';
 import { IProposalMetadata } from '../../../types/proposal.type';
 
 export default async function getStandardProposal(proposalId: number, config: INetworkConfig) {
@@ -21,9 +21,26 @@ export default async function getStandardProposal(proposalId: number, config: IN
     const rawUri = ipfsUri.startsWith('ipfs://') ? ipfsUri.slice(7) : ipfsUri;
 
     const metadata = await getIpfsFileSafe<IProposalMetadata>(rawUri);
-    if (!metadata) {
+
+    let proposalData;
+    if (isNotFoundMarker(metadata)) {
+      console.warn(`Metadata not found for standard proposal ${proposalId}, IPFS hash: ${rawUri}`);
+      proposalData = {
+        title: `[NOT FOUND]:${rawUri}`,
+        summary: `Metadata not available for IPFS hash: ${rawUri}`,
+        description: `The proposal metadata could not be retrieved from IPFS. Hash: ${rawUri}`,
+      };
+    } else if (!metadata) {
       console.warn(`Could not fetch metadata for standard proposal ${proposalId}, continuing without it`);
+      proposalData = {
+        title: `Standard Proposal ${proposalId}`,
+        summary: 'Metadata could not be loaded',
+        description: 'The proposal metadata could not be retrieved',
+      };
+    } else {
+      proposalData = metadata;
     }
+
     return {
       executed: res[0],
       approvals: res[1],
@@ -32,7 +49,7 @@ export default async function getStandardProposal(proposalId: number, config: IN
       destinationActions: res[4],
       destinationPlugin: res[5] as Address,
       proposalId,
-      ...metadata,
+      ...proposalData,
     };
   } catch (e) {
     console.error(`Error fetching standard proposal ${proposalId}:`, e);

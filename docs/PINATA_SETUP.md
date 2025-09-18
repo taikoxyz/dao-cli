@@ -29,7 +29,7 @@ This guide will help you set up Pinata for pinning proposal metadata to IPFS.
 
 2. Add your Pinata JWT to the `.env` file:
    ```
-   PINATA_JWT=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   PINATA_JWT=...
    ```
 
 ## Step 4: Test Your Configuration

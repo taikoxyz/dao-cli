@@ -36,7 +36,7 @@ describe('getIpfsFile', () => {
 
   describe('cache behavior', () => {
     it('should return cached content when available', async () => {
-      mockCache.has.mockResolvedValue(true);
+      mockCache.has.mockResolvedValueOnce(true); // ipfs:hash exists
       mockCache.get.mockResolvedValue(testContent);
 
       const result = await getIpfsFile<typeof testContent>(testHash, false);
@@ -50,7 +50,8 @@ describe('getIpfsFile', () => {
     });
 
     it('should cache fetched content', async () => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:hash doesn't exist
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:missing:hash doesn't exist
       mockAxios.get.mockResolvedValue({ data: testContent });
       mockWait.mockResolvedValue();
 
@@ -58,6 +59,68 @@ describe('getIpfsFile', () => {
 
       expect(mockCache.set).toHaveBeenCalledWith(`ipfs:${testHash}`, testContent);
       expect(result).toEqual(testContent);
+    });
+
+    it('should return [NOT FOUND] marker for missing hashes without fetching', async () => {
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:hash doesn't exist
+      mockCache.has.mockResolvedValueOnce(true); // ipfs:missing:hash exists
+
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
+
+      expect(console.info).toHaveBeenCalledWith(`Hash ${testHash} is marked as missing, returning [NOT FOUND] marker`);
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
+      expect(mockAxios.get).not.toHaveBeenCalled();
+      expect(mockWait).not.toHaveBeenCalled();
+    });
+
+    it('should mark hash as missing after 3 failures', async () => {
+      const timeoutError = {
+        code: 'ECONNABORTED',
+        message: 'timeout of 10000ms exceeded',
+      };
+
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:hash doesn't exist
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:missing:hash doesn't exist
+      mockAxios.get.mockRejectedValue(timeoutError);
+      mockWait.mockResolvedValue();
+
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
+
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
+      expect(mockCache.set).toHaveBeenCalledWith(
+        `ipfs:missing:${testHash}`,
+        expect.objectContaining({
+          markedAt: expect.any(Number),
+          gatewayCount: expect.any(Number),
+          timeoutCount: expect.any(Number),
+          notFoundCount: expect.any(Number),
+        }),
+      );
+    });
+
+    it('should mark hash as missing after 3 404 errors', async () => {
+      const notFoundError = {
+        message: 'Request failed with status code 404',
+        response: { status: 404 },
+      };
+
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:hash doesn't exist
+      mockCache.has.mockResolvedValueOnce(false); // ipfs:missing:hash doesn't exist
+      mockAxios.get.mockRejectedValue(notFoundError);
+      mockWait.mockResolvedValue();
+
+      const result = await getIpfsFile<typeof testContent>(testHash, false);
+
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
+      expect(mockCache.set).toHaveBeenCalledWith(
+        `ipfs:missing:${testHash}`,
+        expect.objectContaining({
+          markedAt: expect.any(Number),
+          gatewayCount: expect.any(Number),
+          timeoutCount: 0,
+          notFoundCount: expect.any(Number),
+        }),
+      );
     });
   });
 
@@ -69,7 +132,7 @@ describe('getIpfsFile', () => {
     it('should use default IPFS gateway when not specified', async () => {
       delete process.env.IPFS_GATEWAY;
 
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
       mockAxios.get.mockResolvedValue({ data: testContent });
       mockWait.mockResolvedValue();
 
@@ -93,7 +156,7 @@ describe('getIpfsFile', () => {
 
   describe('HTTP request configuration', () => {
     beforeEach(() => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
       mockWait.mockResolvedValue();
     });
 
@@ -123,7 +186,7 @@ describe('getIpfsFile', () => {
 
   describe('successful responses', () => {
     beforeEach(() => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
       mockWait.mockResolvedValue();
     });
 
@@ -182,7 +245,7 @@ describe('getIpfsFile', () => {
 
   describe('error handling', () => {
     beforeEach(() => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
       mockWait.mockResolvedValue();
     });
 
@@ -192,7 +255,7 @@ describe('getIpfsFile', () => {
 
       const result = await getIpfsFile<typeof testContent>(testHash, false);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
       expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
@@ -202,7 +265,7 @@ describe('getIpfsFile', () => {
 
       const result = await getIpfsFile<typeof testContent>(testHash, false);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
       expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
@@ -215,7 +278,7 @@ describe('getIpfsFile', () => {
 
       const result = await getIpfsFile<typeof testContent>(testHash, false);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
       expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
@@ -225,7 +288,7 @@ describe('getIpfsFile', () => {
 
       const result = await getIpfsFile<typeof testContent>(testHash, false);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe(`[NOT FOUND]:${testHash}`);
       expect(console.error).toHaveBeenCalledWith(`Failed to fetch IPFS file with hash ${testHash} from all gateways`);
     });
 
@@ -246,26 +309,27 @@ describe('getIpfsFile', () => {
     });
 
     it('should use correct cache key format', async () => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
 
       await getIpfsFile<typeof testContent>(testHash, false);
 
       expect(mockCache.has).toHaveBeenCalledWith(`ipfs:${testHash}`);
+      expect(mockCache.has).toHaveBeenCalledWith(`ipfs:missing:${testHash}`);
       expect(mockCache.set).toHaveBeenCalledWith(`ipfs:${testHash}`, testContent);
     });
 
     it('should handle different hash formats', async () => {
       const hashes = ['QmTest123', 'bafybeitest123', 'zdj7WTest123'];
 
-      mockCache.has.mockResolvedValue(false);
-
       for (const hash of hashes) {
         mockCache.has.mockClear();
         mockCache.set.mockClear();
+        mockCache.has.mockResolvedValue(false); // Reset for each iteration
 
         await getIpfsFile<typeof testContent>(hash);
 
         expect(mockCache.has).toHaveBeenCalledWith(`ipfs:${hash}`);
+        expect(mockCache.has).toHaveBeenCalledWith(`ipfs:missing:${hash}`);
         expect(mockCache.set).toHaveBeenCalledWith(`ipfs:${hash}`, testContent);
       }
     });
@@ -273,7 +337,7 @@ describe('getIpfsFile', () => {
 
   describe('type safety', () => {
     beforeEach(() => {
-      mockCache.has.mockResolvedValue(false);
+      mockCache.has.mockResolvedValue(false); // for both ipfs:hash and ipfs:missing:hash
       mockWait.mockResolvedValue();
     });
 
@@ -351,6 +415,71 @@ describe('getIpfsFile', () => {
       // Each call should wait 500ms
       expect(mockWait).toHaveBeenCalledTimes(3);
       expect(mockWait).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('missing hash utility functions', () => {
+    // Import the utility functions for testing
+    const {
+      clearMissingHash,
+      isMissingHash,
+      getMissingHashes,
+      isNotFoundMarker,
+      extractHashFromNotFoundMarker,
+    } = require('../../../src/api/ipfs/getIpfsFile');
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should clear missing hash from cache', async () => {
+      await clearMissingHash(testHash);
+      expect(mockCache.delete).toHaveBeenCalledWith(`ipfs:missing:${testHash}`);
+    });
+
+    it('should check if hash is marked as missing', async () => {
+      mockCache.has.mockResolvedValue(true);
+      const result = await isMissingHash(testHash);
+      expect(mockCache.has).toHaveBeenCalledWith(`ipfs:missing:${testHash}`);
+      expect(result).toBe(true);
+    });
+
+    it('should return false for hash not marked as missing', async () => {
+      mockCache.has.mockResolvedValue(false);
+      const result = await isMissingHash(testHash);
+      expect(result).toBe(false);
+    });
+
+    it('should get all missing hashes with metadata', async () => {
+      const mockKeys = ['ipfs:hash1', 'ipfs:missing:hash2', 'ipfs:missing:hash3', 'other:key'];
+      const mockMetadata = { markedAt: Date.now(), gatewayCount: 4 };
+
+      mockCache.keys.mockResolvedValue(mockKeys);
+      mockCache.get.mockResolvedValue(mockMetadata);
+
+      const result = await getMissingHashes();
+
+      expect(mockCache.keys).toHaveBeenCalled();
+      expect(mockCache.get).toHaveBeenCalledWith('ipfs:missing:hash2');
+      expect(mockCache.get).toHaveBeenCalledWith('ipfs:missing:hash3');
+      expect(result).toEqual({
+        hash2: mockMetadata,
+        hash3: mockMetadata,
+      });
+    });
+
+    it('should detect [NOT FOUND] markers', () => {
+      expect(isNotFoundMarker('[NOT FOUND]:QmTest123')).toBe(true);
+      expect(isNotFoundMarker('regular string')).toBe(false);
+      expect(isNotFoundMarker(null)).toBe(false);
+      expect(isNotFoundMarker(undefined)).toBe(false);
+      expect(isNotFoundMarker({ test: 'object' })).toBe(false);
+    });
+
+    it('should extract hash from [NOT FOUND] marker', () => {
+      const hash = 'QmTest123';
+      const marker = `[NOT FOUND]:${hash}`;
+      expect(extractHashFromNotFoundMarker(marker)).toBe(hash);
     });
   });
 });

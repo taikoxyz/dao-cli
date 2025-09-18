@@ -2,7 +2,7 @@ import { Address, hexToString, parseAbi } from 'viem';
 import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
-import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
+import { getIpfsFileSafe, isNotFoundMarker, extractHashFromNotFoundMarker } from '../../ipfs/getIpfsFile';
 import { getNetworkCache } from '../../cache';
 
 // ERC20Votes ABI for voting power
@@ -82,18 +82,25 @@ export default async function getDelegates(config: INetworkConfig): Promise<Dele
           try {
             const ipfsHash = contentUrl.replace('ipfs://', '');
             const metadata = await getIpfsFileSafe(ipfsHash);
-            if (!metadata) {
+
+            if (isNotFoundMarker(metadata)) {
+              const missingHash = extractHashFromNotFoundMarker(metadata);
+              console.warn(`Metadata not found for delegate ${profile.address}, IPFS hash: ${missingHash}`);
+              profile.metadata = metadata; // Store the [NOT FOUND] marker
+              profile.identifier = `[METADATA NOT FOUND]:${missingHash}`;
+            } else if (!metadata) {
               console.warn(`Could not fetch metadata for delegate ${profile.address}, continuing without it`);
-            }
-            profile.metadata = metadata;
-            // Extract identifier from metadata if available - check 'identifier' field first
-            if (metadata && typeof metadata === 'object') {
-              profile.identifier = ((metadata as Record<string, unknown>).identifier ||
-                (metadata as Record<string, unknown>).name ||
-                (metadata as Record<string, unknown>).title ||
-                (metadata as Record<string, unknown>).displayName) as string | undefined;
-              if (!profile.identifier) {
-                console.warn(`No identifier found in metadata for ${address}`);
+            } else {
+              profile.metadata = metadata;
+              // Extract identifier from metadata if available - check 'identifier' field first
+              if (typeof metadata === 'object') {
+                profile.identifier = ((metadata as Record<string, unknown>).identifier ||
+                  (metadata as Record<string, unknown>).name ||
+                  (metadata as Record<string, unknown>).title ||
+                  (metadata as Record<string, unknown>).displayName) as string | undefined;
+                if (!profile.identifier) {
+                  console.warn(`No identifier found in metadata for ${address}`);
+                }
               }
             }
           } catch (error) {
@@ -154,16 +161,23 @@ export async function getDelegate(
       try {
         const ipfsHash = contentUrl.replace('ipfs://', '');
         const metadata = await getIpfsFileSafe(ipfsHash);
-        if (!metadata) {
+
+        if (isNotFoundMarker(metadata)) {
+          const missingHash = extractHashFromNotFoundMarker(metadata);
+          console.warn(`Metadata not found for delegate ${address}, IPFS hash: ${missingHash}`);
+          profile.metadata = metadata; // Store the [NOT FOUND] marker
+          profile.identifier = `[METADATA NOT FOUND]:${missingHash}`;
+        } else if (!metadata) {
           console.warn(`Could not fetch metadata for delegate ${address}, continuing without it`);
-        }
-        profile.metadata = metadata;
-        // Extract identifier from metadata if available - check 'identifier' field first
-        if (metadata && typeof metadata === 'object') {
-          profile.identifier = ((metadata as Record<string, unknown>).identifier ||
-            (metadata as Record<string, unknown>).name ||
-            (metadata as Record<string, unknown>).title ||
-            (metadata as Record<string, unknown>).displayName) as string | undefined;
+        } else {
+          profile.metadata = metadata;
+          // Extract identifier from metadata if available - check 'identifier' field first
+          if (typeof metadata === 'object') {
+            profile.identifier = ((metadata as Record<string, unknown>).identifier ||
+              (metadata as Record<string, unknown>).name ||
+              (metadata as Record<string, unknown>).title ||
+              (metadata as Record<string, unknown>).displayName) as string | undefined;
+          }
         }
       } catch (error) {
         console.error(`Error fetching IPFS metadata for delegate ${address}:`, error);

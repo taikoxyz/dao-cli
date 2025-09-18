@@ -30,6 +30,7 @@ jest.mock('../../src/api/dao/security-council/isAppointedAgent');
 jest.mock('../../src/api/dao/standard-proposal/getStandardProposals');
 jest.mock('../../src/api/dao/emergency-proposal/getEmergencyProposals');
 jest.mock('../../src/api/dao/public-proposal/getPublicProposals');
+jest.mock('../../src/api/dao/public-proposal/vetoProposal.prompt');
 jest.mock('../../src/api/viem');
 jest.mock('../../src/abi');
 jest.mock('../../src/api/dao/delegates/getDelegates');
@@ -169,13 +170,32 @@ describe('selectMainMenuPrompt', () => {
   });
 
   describe('Public Stage Proposals', () => {
-    it('should fetch and display public proposals', async () => {
+    it('should show public proposal submenu options', async () => {
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce('back');
+
+      try {
+        await selectMainMenuPrompt(mockConfig, mockWalletClient);
+      } catch {
+        // Will eventually recurse and throw
+      }
+
+      expect(mockSelect).toHaveBeenCalledWith({
+        message: 'What would you like to do with public proposals?',
+        choices: [
+          { value: 'view', name: 'View Public Proposals' },
+          { value: 'veto', name: 'Veto a Public Proposal' },
+          { value: 'back', name: 'Back to Main Menu' },
+        ],
+      });
+    });
+
+    it('should fetch and display public proposals when view is selected', async () => {
       const mockProposals: Array<unknown> = [
         { title: 'Proposal 1', description: 'Description 1' },
         { title: 'Proposal 2', description: 'Description 2' },
       ];
 
-      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce(0); // Select first proposal
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce('view').mockResolvedValueOnce(0); // Select first proposal
       mockGetPublicProposals.mockResolvedValue(mockProposals as any);
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
@@ -190,8 +210,8 @@ describe('selectMainMenuPrompt', () => {
       expect(mockSelect).toHaveBeenCalledWith({
         message: 'Select a public stage proposal to view details:',
         choices: [
-          { name: 'Proposal #1: Proposal 1', value: 0 },
-          { name: 'Proposal #2: Proposal 2', value: 1 },
+          { name: '- #1[ID:unknown] Proposal 1', value: 0 },
+          { name: '- #2[ID:unknown] Proposal 2', value: 1 },
         ],
       });
       expect(consoleInfoSpy).toHaveBeenCalledWith(mockProposals[0]);
@@ -199,8 +219,8 @@ describe('selectMainMenuPrompt', () => {
       consoleInfoSpy.mockRestore();
     });
 
-    it('should handle empty public proposals list', async () => {
-      mockSelect.mockResolvedValueOnce('Public Stage Proposals');
+    it('should handle empty public proposals list when view is selected', async () => {
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce('view');
       mockGetPublicProposals.mockResolvedValue([]);
 
       const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
@@ -217,8 +237,24 @@ describe('selectMainMenuPrompt', () => {
       consoleInfoSpy.mockRestore();
     });
 
-    it('should handle null public proposals', async () => {
-      mockSelect.mockResolvedValueOnce('Public Stage Proposals');
+    it('should call vetoProposalPrompt when veto is selected', async () => {
+      const { vetoProposalPrompt } = require('../../src/api/dao/public-proposal/vetoProposal.prompt');
+      const mockVetoProposalPrompt = vetoProposalPrompt as jest.MockedFunction<typeof vetoProposalPrompt>;
+
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce('veto');
+      mockVetoProposalPrompt.mockResolvedValue();
+
+      try {
+        await selectMainMenuPrompt(mockConfig, mockWalletClient);
+      } catch {
+        // Expected due to recursion
+      }
+
+      expect(mockVetoProposalPrompt).toHaveBeenCalledWith(mockConfig, mockWalletClient);
+    });
+
+    it('should handle null public proposals when view is selected', async () => {
+      mockSelect.mockResolvedValueOnce('Public Stage Proposals').mockResolvedValueOnce('view');
       mockGetPublicProposals.mockResolvedValue(null as any);
 
       try {
@@ -359,7 +395,7 @@ describe('selectMainMenuPrompt', () => {
 
   describe('Delegates', () => {
     it('should fetch and display delegates when no delegates exist', async () => {
-      mockSelect.mockResolvedValueOnce('Delegates');
+      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('View Delegates');
 
       // Mock delegate functions
       mockGetDelegateCount.mockResolvedValueOnce(0);
@@ -408,7 +444,10 @@ describe('selectMainMenuPrompt', () => {
         },
       };
 
-      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1'); // Select first delegate
+      mockSelect
+        .mockResolvedValueOnce('Delegates')
+        .mockResolvedValueOnce('View Delegates')
+        .mockResolvedValueOnce('0xdelegate1'); // Select first delegate
 
       mockGetDelegateCount.mockResolvedValueOnce(2);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);
@@ -463,7 +502,10 @@ describe('selectMainMenuPrompt', () => {
         },
       ];
 
-      mockSelect.mockResolvedValueOnce('Delegates').mockResolvedValueOnce('0xdelegate1');
+      mockSelect
+        .mockResolvedValueOnce('Delegates')
+        .mockResolvedValueOnce('View Delegates')
+        .mockResolvedValueOnce('0xdelegate1');
 
       mockGetDelegateCount.mockResolvedValueOnce(1);
       mockGetDelegates.mockResolvedValueOnce(mockDelegatesList);
