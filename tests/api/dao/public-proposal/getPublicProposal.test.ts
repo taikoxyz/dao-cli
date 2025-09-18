@@ -176,7 +176,7 @@ describe('getPublicProposal', () => {
 
     expect(result).toBeDefined(); // Should return proposal data without metadata
     expect(result?.metadataURI).toBe('ipfs://QmTest123');
-    expect(result?.title).toBeUndefined(); // No metadata loaded
+    expect(result?.title).toBe('Public Proposal 3'); // Fallback title when metadata fails
   });
 
   it('should handle different proposal counts', async () => {

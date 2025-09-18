@@ -82,8 +82,8 @@ async function handleApproveStandard(
 
     const proposalSelect = await select({
       message: 'Select a standard proposal to approve:',
-      choices: activeProposals.map((proposal) => ({
-        name: `Proposal ${proposal.proposalId}: ${proposal.title} (${proposal.approvals} approvals)`,
+      choices: activeProposals.map((proposal, index) => ({
+        name: `- #${index + 1}[ID:${proposal.proposalId}] ${proposal.title} (${proposal.approvals} approvals)`,
         value: proposal.proposalId,
       })),
     });
@@ -141,8 +141,8 @@ async function handleApproveEmergency(
 
     const proposalSelect = await select({
       message: 'Select an emergency proposal to approve:',
-      choices: activeProposals.map((proposal) => ({
-        name: `Proposal ${proposal.proposalId}: ${proposal.title || '[Encrypted]'} (${proposal.approvals} approvals)`,
+      choices: activeProposals.map((proposal, index) => ({
+        name: `- #${index + 1}[ID:${proposal.proposalId}] ${proposal.title || '[Encrypted]'} (${proposal.approvals} approvals)`,
         value: proposal.proposalId,
       })),
     });
@@ -200,8 +200,8 @@ async function handleExecuteStandard(
 
     const proposalSelect = await select({
       message: 'Select a standard proposal to execute:',
-      choices: activeProposals.map((proposal) => ({
-        name: `Proposal ${proposal.proposalId}: ${proposal.title} (${proposal.approvals} approvals)`,
+      choices: activeProposals.map((proposal, index) => ({
+        name: `- #${index + 1}[ID:${proposal.proposalId}] ${proposal.title} (${proposal.approvals} approvals)`,
         value: proposal.proposalId,
       })),
     });
@@ -259,8 +259,8 @@ async function handleExecuteEmergency(
 
     const proposalSelect = await select({
       message: 'Select an emergency proposal to execute:',
-      choices: activeProposals.map((proposal) => ({
-        name: `Proposal ${proposal.proposalId}: ${proposal.title || '[Encrypted]'} (${proposal.approvals} approvals)`,
+      choices: activeProposals.map((proposal, index) => ({
+        name: `- #${index + 1}[ID:${proposal.proposalId}] ${proposal.title || '[Encrypted]'} (${proposal.approvals} approvals)`,
         value: proposal.proposalId,
       })),
     });

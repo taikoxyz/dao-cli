@@ -58,7 +58,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
         const proposalSelect = await select({
           message: 'Select a public stage proposal to view details:',
           choices: proposals.map((proposal, index) => ({
-            name: `Proposal #${index + 1}: ${proposal.title}`,
+            name: `- #${index + 1}[ID:${proposal.proposalId || 'unknown'}] ${proposal.title}`,
             value: index,
           })),
         });
@@ -86,7 +86,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
 
       // Check if the user is an appointed agent
       const isAgent = await isSecurityCouncilMember(address, config);
-      
+
       if (isAgent) {
         console.info(`Your account (${address}) is an appointed agent of the Security Council.`);
 
@@ -109,7 +109,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
           const proposalSelect = await select({
             message: 'Select a standard proposal to view details:',
             choices: proposals.map((proposal, index) => ({
-              name: `Proposal #${index + 1}: ${proposal.title}`,
+              name: `- #${index + 1}[ID:${proposal.proposalId || 'unknown'}] ${proposal.title}`,
               value: index,
             })),
           });
@@ -120,7 +120,7 @@ export async function selectMainMenuPrompt(config: INetworkConfig, walletClient:
           const proposalSelect = await select({
             message: 'Select an emergency proposal to view details:',
             choices: proposals.map((proposal, index) => ({
-              name: `Proposal #${index + 1}: ${proposal?.title}`,
+              name: `- #${index + 1}[ID:${proposal?.proposalId || 'unknown'}] ${proposal?.title || 'Untitled'}`,
               value: index,
             })),
           });

@@ -210,8 +210,8 @@ describe('selectMainMenuPrompt', () => {
       expect(mockSelect).toHaveBeenCalledWith({
         message: 'Select a public stage proposal to view details:',
         choices: [
-          { name: 'Proposal #1: Proposal 1', value: 0 },
-          { name: 'Proposal #2: Proposal 2', value: 1 },
+          { name: '- #1[ID:unknown] Proposal 1', value: 0 },
+          { name: '- #2[ID:unknown] Proposal 2', value: 1 },
         ],
       });
       expect(consoleInfoSpy).toHaveBeenCalledWith(mockProposals[0]);
@@ -377,8 +377,7 @@ describe('selectMainMenuPrompt', () => {
     });
 
     it('should handle invalid security council action', async () => {
-      mockSelect.mockResolvedValueOnce('Security Council')
-        .mockResolvedValueOnce('Invalid Action');
+      mockSelect.mockResolvedValueOnce('Security Council').mockResolvedValueOnce('Invalid Action');
 
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 

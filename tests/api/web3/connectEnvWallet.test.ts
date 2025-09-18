@@ -97,55 +97,48 @@ describe('connectEnvWallet', () => {
   });
 
   describe('error handling', () => {
-    it('should use fallback 0x when private key is missing for holesky', async () => {
+    it('should throw error when private key is missing for holesky', async () => {
       delete process.env.HOLESKY_PRIVATE_KEY;
       mockConfig.network = 'holesky';
 
-      const result = await connectEnvWallet(mockConfig);
-
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x');
-      expect(result).toBe(mockWalletClient);
+      await expect(connectEnvWallet(mockConfig)).rejects.toThrow(
+        'No private key found for network holesky. Please set HOLESKY_PRIVATE_KEY or MAINNET_PRIVATE_KEY in your .env file.',
+      );
     });
 
-    it('should use fallback 0x when private key is missing for mainnet', async () => {
+    it('should throw error when private key is missing for mainnet', async () => {
       delete process.env.MAINNET_PRIVATE_KEY;
       mockConfig.network = 'mainnet';
 
-      const result = await connectEnvWallet(mockConfig);
-
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x');
-      expect(result).toBe(mockWalletClient);
+      await expect(connectEnvWallet(mockConfig)).rejects.toThrow(
+        'No private key found for network mainnet. Please set HOLESKY_PRIVATE_KEY or MAINNET_PRIVATE_KEY in your .env file.',
+      );
     });
 
-    it('should use fallback 0x when private key is empty string for holesky', async () => {
+    it('should throw error when private key is empty string for holesky', async () => {
       process.env.HOLESKY_PRIVATE_KEY = '';
       mockConfig.network = 'holesky';
 
-      const result = await connectEnvWallet(mockConfig);
-
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x');
-      expect(result).toBe(mockWalletClient);
+      await expect(connectEnvWallet(mockConfig)).rejects.toThrow(
+        'No private key found for network holesky. Please set HOLESKY_PRIVATE_KEY or MAINNET_PRIVATE_KEY in your .env file.',
+      );
     });
 
-    it('should use 0x when explicitly set', async () => {
+    it('should throw error when private key is only 0x', async () => {
       process.env.HOLESKY_PRIVATE_KEY = '0x';
       mockConfig.network = 'holesky';
 
-      const result = await connectEnvWallet(mockConfig);
-
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x');
-      expect(result).toBe(mockWalletClient);
+      await expect(connectEnvWallet(mockConfig)).rejects.toThrow('Private key is required');
     });
 
-    it('should use fallback 0x for unsupported network', async () => {
+    it('should throw error for unsupported network', async () => {
       mockConfig.network = 'unsupported-network' as 'holesky' | 'mainnet';
       delete process.env.HOLESKY_PRIVATE_KEY;
       delete process.env.MAINNET_PRIVATE_KEY;
 
-      const result = await connectEnvWallet(mockConfig);
-
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith('0x');
-      expect(result).toBe(mockWalletClient);
+      await expect(connectEnvWallet(mockConfig)).rejects.toThrow(
+        'No private key found for network unsupported-network. Please set HOLESKY_PRIVATE_KEY or MAINNET_PRIVATE_KEY in your .env file.',
+      );
     });
 
     it('should handle viem client creation errors', async () => {
@@ -214,11 +207,12 @@ describe('connectEnvWallet', () => {
 
     it('should handle private key without 0x prefix', async () => {
       const privateKeyWithoutPrefix = '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+      const expectedNormalizedKey = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
       process.env.HOLESKY_PRIVATE_KEY = privateKeyWithoutPrefix;
 
       await connectEnvWallet(mockConfig);
 
-      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(privateKeyWithoutPrefix);
+      expect(mockPrivateKeyToAccount).toHaveBeenCalledWith(expectedNormalizedKey);
     });
   });
 

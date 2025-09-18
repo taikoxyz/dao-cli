@@ -1,19 +1,20 @@
 import * as dotenv from 'dotenv';
 import { INetworkConfig } from '../../types/network.type';
 // import { getPublicClient, getWalletClient } from '../viem';
-import { Address, createWalletClient, http, WalletClient } from 'viem';
+import { createWalletClient, http, WalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { holesky, mainnet } from 'viem/chains';
+import { normalizePrivateKey } from '../../util/normalizePrivateKey';
 
 // Load environment variables
 dotenv.config();
 
 export default async function connectEnvWallet(config: INetworkConfig): Promise<WalletClient> {
-  let privateKey: Address = '0x';
+  let privateKey: string = '';
   if (config.network === 'holesky') {
-    privateKey = (process.env.HOLESKY_PRIVATE_KEY as Address) || '0x';
+    privateKey = process.env.HOLESKY_PRIVATE_KEY || '';
   } else if (config.network === 'mainnet') {
-    privateKey = (process.env.MAINNET_PRIVATE_KEY as Address) || '0x';
+    privateKey = process.env.MAINNET_PRIVATE_KEY || '';
   }
   if (!privateKey) {
     throw new Error(
@@ -21,8 +22,10 @@ export default async function connectEnvWallet(config: INetworkConfig): Promise<
     );
   }
 
+  const normalizedPrivateKey = normalizePrivateKey(privateKey);
+
   const walletClient = createWalletClient({
-    account: privateKeyToAccount(privateKey),
+    account: privateKeyToAccount(normalizedPrivateKey),
     chain: config.network === 'holesky' ? holesky : mainnet,
     transport: http(config.urls.rpc),
   });

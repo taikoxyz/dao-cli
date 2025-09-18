@@ -3,7 +3,7 @@ import { ABIs } from '../../../abi';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
 import { pinJsonToIpfs } from '../../ipfs/pinToIpfs';
-import { getIpfsFileSafe } from '../../ipfs/getIpfsFile';
+import { getIpfsFileSafe, isNotFoundMarker, extractHashFromNotFoundMarker } from '../../ipfs/getIpfsFile';
 import { getNetworkCache } from '../../cache';
 
 export interface DelegateProfileData {
@@ -50,7 +50,18 @@ export async function checkDelegateProfileExists(
     if (contentUrl.startsWith('ipfs://')) {
       try {
         const ipfsHash = contentUrl.replace('ipfs://', '');
-        metadata = await getIpfsFileSafe(ipfsHash);
+        const result = await getIpfsFileSafe(ipfsHash);
+        if (isNotFoundMarker(result)) {
+          const missingHash = extractHashFromNotFoundMarker(result);
+          console.warn(`Existing metadata not found, IPFS hash: ${missingHash}`);
+          metadata = {
+            error: '[NOT FOUND]',
+            missingHash,
+            note: `Previous metadata could not be retrieved from IPFS hash: ${missingHash}`,
+          };
+        } else {
+          metadata = result;
+        }
       } catch (error) {
         console.warn(`Could not fetch existing metadata: ${error}`);
       }

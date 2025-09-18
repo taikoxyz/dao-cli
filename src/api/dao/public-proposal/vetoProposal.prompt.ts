@@ -1,5 +1,5 @@
 import { select, confirm } from '@inquirer/prompts';
-import { WalletClient, formatUnits } from 'viem';
+import { WalletClient, formatUnits, Address } from 'viem';
 import { INetworkConfig } from '../../../types/network.type';
 import { getPublicClient } from '../../viem';
 import getPublicProposals from './getPublicProposals';
@@ -11,6 +11,31 @@ import {
   getMinVetoRatio,
 } from './vetoProposal';
 import { ABIs } from '../../../abi';
+import { IProposalMetadata } from '../../../types/proposal.type';
+
+interface ProposalParameters {
+  vetoEndDate: bigint;
+  snapshotTimestamp: bigint;
+  minVetoRatio: number;
+  unavailableL2: boolean;
+}
+
+interface ProposalAction {
+  to: Address;
+  value: bigint;
+  data: string;
+}
+
+interface PublicProposal extends IProposalMetadata {
+  executed: boolean;
+  approvals: number;
+  parameters: ProposalParameters;
+  metadataURI: string;
+  destinationActions: ProposalAction[];
+  destinationPlugin: Address;
+  proposalId: bigint;
+  endDate?: bigint;
+}
 
 export async function vetoProposalPrompt(config: INetworkConfig, walletClient: WalletClient): Promise<void> {
   try {
@@ -67,7 +92,7 @@ export async function vetoProposalPrompt(config: INetworkConfig, walletClient: W
         hasVetoed,
         vetoReached,
         vetoTally,
-        endDate: (proposal as any).endDate,
+        endDate: (proposal as unknown as PublicProposal).endDate,
       });
     }
 
@@ -98,7 +123,7 @@ export async function vetoProposalPrompt(config: INetworkConfig, walletClient: W
         const vetoTallyFormatted = formatUnits(p.vetoTally, 18); // Assuming 18 decimals for token
 
         return {
-          name: `#${p.index + 1}: ${p.proposal.title || 'Untitled'}${status} (Veto Tally: ${vetoTallyFormatted})`,
+          name: `- #${p.index + 1}[ID:${p.proposal.proposalId || 'unknown'}] ${p.proposal.title || 'Untitled'}${status} (Veto Tally: ${vetoTallyFormatted})`,
           value: p.index,
           disabled: !p.canVeto || p.hasVetoed,
         };
@@ -130,7 +155,7 @@ export async function vetoProposalPrompt(config: INetworkConfig, walletClient: W
       args: [],
     });
 
-    const votingTokenAddress = votingToken as any as `0x${string}`;
+    const votingTokenAddress = votingToken as unknown as Address;
     const userVotingPower = await publicClient.readContract({
       address: votingTokenAddress,
       abi: ABIs.VotingToken,
@@ -138,7 +163,7 @@ export async function vetoProposalPrompt(config: INetworkConfig, walletClient: W
       args: [voterAddress],
     });
 
-    console.info(`Your Voting Power: ${formatUnits(userVotingPower as any as bigint, 18)} tokens`);
+    console.info(`Your Voting Power: ${formatUnits(userVotingPower as unknown as bigint, 18)} tokens`);
     console.info('\n');
 
     // Confirm veto
