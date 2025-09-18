@@ -2,16 +2,9 @@
 
 A command-line interface for seamless interaction with the Taiko DAO governance system, providing comprehensive access to proposals, delegation, and Security Council operations.
 
-## Overview
+## Quick Start
 
-The Taiko DAO CLI is a TypeScript-based tool that enables users to interact with the Taiko DAO smart contracts directly from the terminal. It supports both mainnet and testnet (Holesky) environments, offering functionality for proposal management, delegate operations, and Security Council member activities.
-
-## Prerequisites
-
-- Node.js (v14.0.0 or higher)
-- pnpm package manager
-
-## Installation
+### Installation
 
 ```bash
 git clone https://github.com/taikoxyz/dao-cli taiko-dao-cli
@@ -20,60 +13,50 @@ pnpm install
 pnpm build
 ```
 
-## Configuration
-
-### Security Council Members
-
-Security Council members must configure their agent wallet to access privileged operations. Create a `.env` file from the provided template:
+### Running the CLI
 
 ```bash
-cp .env.example .env
-```
-
-Add your private key to the `.env` file. This requirement will be replaced with a more secure wallet connectivity solution in future releases.
-
-### IPFS Configuration for Proposals
-
-To create proposals, you must configure IPFS pinning using Pinata to store proposal metadata:
-
-1. Sign up for a free account at [pinata.cloud](https://pinata.cloud)
-2. Go to the API Keys section in your dashboard
-3. Generate a new JWT (JSON Web Token)
-4. Add to your `.env` file:
-   ```
-   PINATA_JWT=your_jwt_token
-   ```
-
-#### Testing IPFS Configuration
-After configuration, test your IPFS setup:
-```bash
-pnpm build
-pnpm test:ipfs
-```
-
-## Usage
-
-### Quick Start
-
-```bash
-# Start with network selection prompt
+# Interactive network selection
 pnpm start
 
-# Start with specific network (bypasses selection)
-pnpm start:mainnet
-pnpm start:holesky
+# Direct to specific networks
+pnpm start:mainnet  # Taiko mainnet
+pnpm start:holesky  # Holesky testnet
 ```
 
-### Features
+That's it! The CLI will guide you through available features and any additional setup needed.
 
-The CLI provides access to the following modules:
+## What You Can Do
 
-| Module | Description | Requirements |
-|--------|-------------|--------------|
-| **Public Stage Proposals** | Browse and inspect proposals in the public voting stage | None |
-| **Security Council** | Access pre-public stage proposals and privileged operations | Agent private key in `.env` |
-| **Delegates** | View delegate profiles and analyze voting power distribution | None |
-| **Read Bare Contracts** | Direct interaction with DAO smart contract methods | None |
+### 🗳️ For All Users
+- **View Public Proposals:** Browse active governance proposals
+- **Explore Delegates:** See who represents the community
+- **Read Contracts:** Inspect on-chain governance data
+- **Delegate Voting Power:** Amplify your governance participation
+
+### 🔒 For Security Council Members
+- **Create Proposals:** Submit standard and emergency proposals
+- **Approve & Execute:** Manage the proposal pipeline
+- **Access Encrypted Content:** View sensitive emergency proposals
+
+## Prerequisites
+
+- Node.js (v14.0.0 or higher)
+- pnpm package manager
+
+## Documentation
+
+- **📖 [User Guide](docs/USER_GUIDE.md)** - Complete guide for general users, delegation, and governance participation
+- **🔐 [Security Council Guide](docs/SECURITY_COUNCIL_GUIDE.md)** - Advanced features for Security Council members
+- **📌 [Pinata Setup](docs/PINATA_SETUP.md)** - IPFS configuration for proposal creation
+- **🔒 [Emergency Proposal Encryption](docs/EMERGENCY_PROPOSAL_ENCRYPTION.md)** - Technical details on proposal encryption
+
+## Networks
+
+- **Mainnet:** Live Taiko governance with real TAIKO tokens
+- **Holesky Testnet:** Safe testing environment with test tokens
+
+**New users:** Start with Holesky to learn the system risk-free!
 
 ## Development
 
@@ -89,6 +72,7 @@ pnpm build
 pnpm test           # Run test suite
 pnpm test:watch     # Run tests in watch mode
 pnpm test:coverage  # Generate coverage report
+pnpm test:ipfs      # Test IPFS configuration
 ```
 
 ### Code Quality
@@ -97,31 +81,6 @@ pnpm test:coverage  # Generate coverage report
 pnpm lint    # Run ESLint with auto-fix
 pnpm format  # Format code with Prettier
 ```
-
-## Roadmap
-
-- [x] **v1.0.0 - Core Foundation**
-    - [x] Multi-network support (Mainnet, Holesky)
-    - [x] Direct contract interaction interface
-    - [x] Security Council proposal decryption
-
-- [x] **v1.1.0 - Enhanced Visibility**
-    - [x] Public-stage proposal reading
-    - [x] Delegate profile exploration
-    - [x] Voting power visualization
-
-- [x] **v1.2.0 - Security Council Operations**
-    - [x] Comprehensive documentation
-    - [x] MIT License adoption
-    - [x] Proposal creation for SC members (standard and emergency)
-    - [x] IPFS metadata pinning integration
-    - [x] Proposal approval workflow
-
-- [ ] **v1.3.0 - Delegation & Governance**
-    - [ ] Secure wallet connectivity without explicit private keys
-    - [x] Delegate profile management
-    - [x] Voting power delegation
-    - [x] Public-stage proposal veto capabilities
 
 ## Contributing
 
