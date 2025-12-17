@@ -1,9 +1,6 @@
 import { select } from '@inquirer/prompts';
 import { WalletClient } from 'viem';
-import {
-  selectWalletPrompt,
-  getWalletTypeFromArgs,
-} from '../../../src/api/web3/selectWallet.prompt';
+import { selectWalletPrompt, getWalletTypeFromArgs } from '../../../src/api/web3/selectWallet.prompt';
 import connectEnvWallet from '../../../src/api/web3/connectEnvWallet';
 import connectFrameWallet, { isFrameAvailable } from '../../../src/api/web3/connectFrameWallet';
 import { INetworkConfig } from '../../../src/types/network.type';
@@ -134,9 +131,7 @@ describe('selectWallet.prompt', () => {
         expect(mockSelect).not.toHaveBeenCalled();
         expect(mockConnectEnvWallet).toHaveBeenCalledWith(mockConfig);
         expect(result).toBe(mockWalletClient);
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Using Environment Private Key'),
-        );
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Using Environment Private Key'));
 
         consoleSpy.mockRestore();
       });
@@ -157,9 +152,7 @@ describe('selectWallet.prompt', () => {
         expect(mockSelect).not.toHaveBeenCalled();
         expect(mockConnectFrameWallet).toHaveBeenCalledWith(mockConfig);
         expect(result).toBe(mockWalletClient);
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Using Hardware Wallet (Frame)'),
-        );
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Using Hardware Wallet (Frame)'));
 
         consoleSpy.mockRestore();
       });
@@ -173,23 +166,17 @@ describe('selectWallet.prompt', () => {
       });
 
       it('should throw error when no wallet is available for holesky', async () => {
-        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow(
-          'No wallet available',
-        );
+        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow('No wallet available');
       });
 
       it('should throw error with correct env var name for mainnet', async () => {
         mockConfig.network = 'mainnet';
 
-        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow(
-          'MAINNET_PRIVATE_KEY',
-        );
+        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow('MAINNET_PRIVATE_KEY');
       });
 
       it('should mention Frame in the error message', async () => {
-        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow(
-          'Frame wallet',
-        );
+        await expect(selectWalletPrompt(mockConfig)).rejects.toThrow('Frame wallet');
       });
     });
 

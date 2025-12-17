@@ -1,9 +1,6 @@
 import { createWalletClient, custom, WalletClient } from 'viem';
 import { holesky, mainnet } from 'viem/chains';
-import connectFrameWallet, {
-  isFrameAvailable,
-  getFrameAccounts,
-} from '../../../src/api/web3/connectFrameWallet';
+import connectFrameWallet, { isFrameAvailable, getFrameAccounts } from '../../../src/api/web3/connectFrameWallet';
 import { INetworkConfig } from '../../../src/types/network.type';
 
 // Mock viem
@@ -140,10 +137,7 @@ describe('connectFrameWallet', () => {
 
   describe('getFrameAccounts', () => {
     it('should return accounts when available', async () => {
-      const mockAccounts = [
-        '0x1234567890abcdef1234567890abcdef12345678',
-        '0xabcdef1234567890abcdef1234567890abcdef12',
-      ];
+      const mockAccounts = ['0x1234567890abcdef1234567890abcdef12345678', '0xabcdef1234567890abcdef1234567890abcdef12'];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -295,9 +289,7 @@ describe('connectFrameWallet', () => {
         }),
       });
 
-      await expect(connectFrameWallet(mockConfig)).rejects.toThrow(
-        'Chain 17000 not configured in Frame',
-      );
+      await expect(connectFrameWallet(mockConfig)).rejects.toThrow('Chain 17000 not configured in Frame');
     });
 
     it('should switch chain with correct hex format', async () => {
@@ -387,14 +379,11 @@ describe('connectFrameWallet', () => {
         }),
       });
 
-      try {
-        await getFrameAccounts();
-        fail('Expected error to be thrown');
-      } catch (error: any) {
-        expect(error.message).toBe('Unauthorized');
-        expect(error.code).toBe(4100);
-        expect(error.name).toBe('FrameRpcError');
-      }
+      await expect(getFrameAccounts()).rejects.toMatchObject({
+        message: 'Unauthorized',
+        code: 4100,
+        name: 'FrameRpcError',
+      });
     });
   });
 
