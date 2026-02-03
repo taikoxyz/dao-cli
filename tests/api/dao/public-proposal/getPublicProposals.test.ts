@@ -455,19 +455,44 @@ describe('getPublicProposals', () => {
 
       (mockClient.readContract as jest.Mock).mockResolvedValue(proposalCount);
 
-      // Simulate different response times
+      // Track when each call starts to verify parallel execution
+      const callStartTimes: number[] = [];
+      const baseTime = Date.now();
+
+      // Simulate different response times and track when calls start
       mockGetPublicProposal
-        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[0] as any), 100)))
-        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[1] as any), 50)))
-        .mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve(mockProposals[2] as any), 10)));
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              callStartTimes.push(Date.now() - baseTime);
+              setTimeout(() => resolve(mockProposals[0] as any), 100);
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              callStartTimes.push(Date.now() - baseTime);
+              setTimeout(() => resolve(mockProposals[1] as any), 50);
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              callStartTimes.push(Date.now() - baseTime);
+              setTimeout(() => resolve(mockProposals[2] as any), 10);
+            }),
+        );
 
-      const startTime = Date.now();
       const result = await getPublicProposals(mockConfig);
-      const endTime = Date.now();
 
-      // Should complete in roughly 100ms (the longest), not 160ms (sum of all)
-      expect(endTime - startTime).toBeLessThan(150);
+      // Verify all calls were initiated (proving parallel execution intent)
+      expect(mockGetPublicProposal).toHaveBeenCalledTimes(3);
       expect(result).toHaveLength(3);
+
+      // If executed in parallel, all calls should start within a small window of each other
+      // If sequential, later calls would start much later (after earlier delays complete)
+      const maxStartTimeDiff = Math.max(...callStartTimes) - Math.min(...callStartTimes);
+      expect(maxStartTimeDiff).toBeLessThan(100); // All calls should start within 100ms of each other
     });
   });
 

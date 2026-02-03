@@ -3,7 +3,9 @@ import { cache } from './api/cache';
 // import getContractsPrompt from './api/getContracts.prompt';
 // import interactWithContractPrompt from './api/interactWithContract.prompt';
 import { selectNetworkPrompt } from './api/selectNetwork.prompt';
+import { selectWalletPrompt, getWalletTypeFromArgs } from './api/web3/selectWallet.prompt';
 import connectEnvWallet from './api/web3/connectEnvWallet';
+import connectFrameWallet from './api/web3/connectFrameWallet';
 import { selectMainMenuPrompt } from './cli/mainMenu.prompt';
 import { INetworkConfig } from './types/network.type';
 import { default as HoleskyValues } from './config/holesky.config.json';
@@ -64,10 +66,31 @@ async function main() {
   let walletClient;
   // wallet loading
   try {
-    walletClient = await connectEnvWallet(config);
-    console.info(`\n👛 Connected to [${config.network}] wallet with address: ${walletClient.account?.address}\n`);
+    const walletTypeArg = getWalletTypeFromArgs();
+    if (walletTypeArg) {
+      // Use wallet type from command line argument
+      console.info(`\nUsing ${walletTypeArg} wallet (specified via --wallet)\n`);
+      if (walletTypeArg === 'frame') {
+        walletClient = await connectFrameWallet(config);
+        console.info(
+          `\n🔐 Connected to [${config.network}] hardware wallet via Frame: ${walletClient.account?.address}\n`,
+        );
+      } else {
+        walletClient = await connectEnvWallet(config);
+        console.info(`\n👛 Connected to [${config.network}] wallet with address: ${walletClient.account?.address}\n`);
+      }
+    } else {
+      // Show wallet selection prompt
+      walletClient = await selectWalletPrompt(config);
+      const isHardwareWallet = walletClient.transport?.name === 'custom';
+      const walletIcon = isHardwareWallet ? '🔐' : '👛';
+      const walletType = isHardwareWallet ? 'hardware wallet via Frame' : 'wallet';
+      console.info(
+        `\n${walletIcon} Connected to [${config.network}] ${walletType}: ${walletClient.account?.address}\n`,
+      );
+    }
   } catch (error) {
-    console.warn(`\n⚠️ Failed to connect ENV wallet: ${error}\n`);
+    console.warn(`\n⚠️ Failed to connect wallet: ${error}\n`);
   }
 
   try {
